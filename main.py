@@ -6,11 +6,17 @@ import keyboard
 
 class ChunJi:
     def __init__(self):
+        self.space_result_text = ""
+        self.space_result = {}
         keyboard.add_hotkey('space', self.on_space_press)
         keyboard.add_hotkey('alt', self.on_alt_press)
 
     def on_space_press(self):
         self.audio_record('space')
+        self.space_result = eval(sasr())
+        self.space_result_text = self.space_result["result"]["text"]
+        print(self.space_result)
+        print(self.space_result_text)
 
     def on_alt_press(self):
         pass

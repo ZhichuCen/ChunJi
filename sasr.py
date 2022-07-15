@@ -53,9 +53,9 @@ def sasr():
     asr_request = AsrCustomShortRequest(path_audio_format, path_property, data)
     # 所有参数均可不设置，使用默认值
     # 设置是否添加标点，yes or no，默认no
-    asr_request.set_add_punc('yes')
+    asr_request.set_add_punc('no')
     # 设置是否将语音中数字转写为阿拉伯数字，yes or no，默认yes
-    asr_request.set_digit_norm('yes')
+    asr_request.set_digit_norm('no')
     # 设置是否添加热词表id，没有则不填
     # asr_request.set_vocabulary_id(None)
     # 设置是否需要word_info，yes or no, 默认no
@@ -63,7 +63,7 @@ def sasr():
 
     # step3 发送请求，返回结果,返回结果为json格式
     result = asr_client.get_short_response(asr_request)
-    print(json.dumps(result, indent=2, ensure_ascii=False))
+    return json.dumps(result, indent=2, ensure_ascii=False)
 
 
 if __name__ == '__main__':
