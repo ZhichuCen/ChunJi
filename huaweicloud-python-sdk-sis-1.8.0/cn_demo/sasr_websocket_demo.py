@@ -7,15 +7,15 @@ from huaweicloud_sis.bean.sis_config import SisConfig
 import json
 
 # 鉴权信息
-ak = ''  # 用户的ak
-sk = ''  # 用户的sk
-region = 'cn-north-4'  # region，如cn-north-4
-project_id = ''  # 同region一一对应，参考https://support.huaweicloud.com/api-sis/sis_03_0008.html
+ak = 'ZENS2IKKSHRU0VTY27YQ'  # 用户的ak
+sk = 'Wpg1k1iQ2o9nPGEl0q1eq1DpMugQh7s0jcSKjJv3'  # 用户的sk
+region = 'cn-east-3'  # region，如cn-north-4
+project_id = 'a7b20cfec1f948dbb4a9d145456b21d7'  # 同region一一对应，参考https://support.huaweicloud.com/api-sis/sis_03_0008.html
 
 # 一句话识别参数
-path = ''           # 需要发送音频路径，如D:/test.pcm, 同时sdk也支持byte流发送数据。
-audio_format = ''   # 音频支持格式，如pcm16k16bit，详见api文档
-property = ''       # 属性字符串，language_sampleRate_domain, 如chinese_16k_common, 采样率要和音频一致。详见api文档
+path = '../../audio.pcm'  # 需要发送音频路径，如D:/test.pcm, 同时sdk也支持byte流发送数据。
+audio_format = 'pcm16k16bit'   # 音频支持格式，如pcm16k16bit，详见api文档
+property = 'chinese_16k_common'       # 属性字符串，language_sampleRate_domain, 如chinese_16k_common, 采样率要和音频一致。详见api文档
 
 
 class MyCallback(RasrCallBack):

@@ -1,0 +1,8 @@
+[2022-07-15 21:13:25,868] - [INFO] - [websocket open]
+[2022-07-15 21:13:25,994] - [ERROR] - [now status is WebsocketStatus.STATE_START_WAITING receive error resp {"resp_type":"ERROR","trace_id":"bb90c074-15d5-43ad-bdf8-9aedb49783a2","error_code":"SIS.0032","error_msg":"'audio_format' is invalid"}]
+[2022-07-15 21:13:25,995] - [INFO] - [websocket close]
+[2022-07-15 21:13:48,830] - [INFO] - [websocket open]
+[2022-07-15 21:13:48,924] - [ERROR] - [now status is WebsocketStatus.STATE_START_WAITING receive error resp {"resp_type":"ERROR","trace_id":"36422ba8-5b4d-46b1-9c23-468897753423","error_code":"SIS.0032","error_msg":"'audio_format' is invalid"}]
+[2022-07-15 21:13:48,925] - [INFO] - [websocket close]
+[2022-07-15 21:13:48,937] - [ERROR] - [status WebsocketStatus.STATE_CLOSE can't send binary data]
+[2022-07-15 21:16:03,961] - [ERROR] - [The Path audio.wav doesn't exist]
