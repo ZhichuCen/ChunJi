@@ -66,10 +66,10 @@ def sasr():
     return json.dumps(result, indent=2, ensure_ascii=False)
 
 
-if __name__ == '__main__':
-    try:
-        sasr()
-    except ClientException as e:
-        print(e)
-    except ServerException as e:
-        print(e)
+# if __name__ == '__main__':
+#     try:
+#         sasr()
+#     except ClientException as e:
+#         print(e)
+#     except ServerException as e:
+#         print(e)

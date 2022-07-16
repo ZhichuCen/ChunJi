@@ -1,0 +1,181 @@
+C:\Users\PC\Desktop\ChunJi\venv\Scripts\python.exe C:/Users/PC/Desktop/ChunJi/main.py
+ Start Recording...
+                                       Recording Done...
+{
+  "trace_id": "ffac1ab3-a277-4aba-a429-a736328d9d18",
+  "result": {
+    "text": "你好。",
+    "score": 0.7333943694209201
+  }
+}
+ Start Recording...
+                                                                                                                                                                                                          Recording Done...
+{
+  "trace_id": "38adfb4b-1d2f-4152-a10f-44368628de56",
+  "result": {
+    "text": "大风起兮云飞扬安得猛士兮守四方。",
+    "score": 0.6795757991912719
+  }
+}
+ Start Recording...
+                                                           Recording Done...
+{
+  "trace_id": "b614ea7f-0a1e-4ff8-a761-b46fd3a16829",
+  "result": {
+    "text": "做哈子的。",
+    "score": 0.5356679636835279
+  }
+}
+ Start Recording...
+                                                                     Recording Done...
+{
+  "trace_id": "08e0c370-846b-4ee6-823b-8e884567fb7d",
+  "result": {
+    "text": "what are you doing兄弟？",
+    "score": 0.6211337453269246
+  }
+}
+ Start Recording...
+Recording Done...
+{
+  "trace_id": "6472f6cd-d069-49e5-9bd2-7872ad385554",
+  "result": {
+    "text": "",
+    "score": 0.0
+  }
+}
+ Start Recording...
+Recording Done...
+{
+  "trace_id": "a188980e-81ad-4f04-8a30-f90a59250d36",
+  "result": {
+    "text": "",
+    "score": 0.0
+  }
+}
+ Start Recording...
+                                            Recording Done...
+{
+  "trace_id": "01986259-1a86-420f-b780-b5a82963a1fb",
+  "result": {
+    "text": "你长的好丑。",
+    "score": 0.5877775234607462
+  }
+}
+ Start Recording...
+        Recording Done...
+{
+  "trace_id": "920282e4-8786-4051-8a53-51098f1bb6ab",
+  "result": {
+    "text": "",
+    "score": 0.0
+  }
+}
+ Start Recording...
+                                             Recording Done...
+{
+  "trace_id": "97089372-a35a-4a99-946f-c0f4d8823dba",
+  "result": {
+    "text": "删除上一句。",
+    "score": 0.6948805981536583
+  }
+}
+ Start Recording...
+                  Recording Done...
+{
+  "trace_id": "89b6f5a2-f1e8-4a06-83e0-1db1167747c8",
+  "result": {
+    "text": "空格。",
+    "score": 0.7419394216830701
+  }
+}
+ Start Recording...
+                          Recording Done...
+{
+  "trace_id": "58f6d3ab-9e16-49fc-a1f4-a3dbfe4b1e73",
+  "result": {
+    "text": "省略号。",
+    "score": 0.6520637827115282
+  }
+}
+ Start Recording...
+                    Recording Done...
+{
+  "trace_id": "309a6bee-91b0-4880-80bb-3d6fb4794f1a",
+  "result": {
+    "text": "逗号。",
+    "score": 0.6537575341420615
+  }
+}
+ Start Recording...
+                   Recording Done...
+{
+  "trace_id": "efc518a9-eadc-4150-bc59-957c554aa68d",
+  "result": {
+    "text": "选择。",
+    "score": 0.619806210421912
+  }
+}
+ Start Recording...
+                            Recording Done...
+{
+  "trace_id": "5e1d8519-37a1-407b-ae9f-eb730ac7f3cf",
+  "result": {
+    "text": "刘慈欣。",
+    "score": 0.6790264744029908
+  }
+}
+ Start Recording...
+                                                             Recording Done...
+{
+  "trace_id": "72daadcf-e7de-443f-aad3-4ce699b2e8f6",
+  "result": {
+    "text": "中华人民共和国外交部。",
+    "score": 0.7876096742198825
+  }
+}
+Start Recording...
+Recording Done...
+{
+  "trace_id": "ab78e878-8c52-4fc7-af1a-4c97f24db58c",
+  "result": {
+    "text": "",
+    "score": 0.0
+  }
+}
+Start Recording...
+Recording Done...
+{
+  "trace_id": "c6ae116a-9907-4814-a227-b9ffb1edd228",
+  "result": {
+    "text": "",
+    "score": 0.0
+  }
+}
+Start Recording...
+Recording Done...
+{
+  "trace_id": "e4ae82b6-e8f8-4261-8974-1af455da5fba",
+  "result": {
+    "text": "螺旋阶梯独角仙废墟街道五虎刮，它独角仙得意啥石头独角仙特一点乔托天使绣球花独角仙，特意替皇帝。",
+    "score": 0.6352025635156786
+  }
+}
+ Start Recording...
+                                                                                                                        Recording Done...
+{
+  "trace_id": "e486fb57-a8ed-48f2-bcea-795a0edb6bc6",
+  "result": {
+    "text": "以人类的普遍理性而言，你的言论是正确的。",
+    "score": 0.6650034332799267
+  }
+}
+ Start Recording...
+                                   Recording Done...
+{
+  "trace_id": "9053c5e6-087f-40d3-a4cc-5449157c95e1",
+  "result": {
+    "text": "外币吧，不。",
+    "score": 0.5989318684672312
+  }
+}

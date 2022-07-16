@@ -1,13 +1,17 @@
+# -*- coding: utf-8 -*-
 import wave
 import pyaudio
-from sasr import sasr
 import keyboard
+from playsound import playsound
+from sasr import sasr
+from tts import tts
 
 
 class ChunJi:
     def __init__(self):
         self.space_result_text = ""
         self.space_result = {}
+        self.cursor = 0
         keyboard.add_hotkey('space', self.on_space_press)
         keyboard.add_hotkey('alt', self.on_alt_press)
 
@@ -15,8 +19,10 @@ class ChunJi:
         self.audio_record('space')
         self.space_result = eval(sasr())
         self.space_result_text = self.space_result["result"]["text"]
-        print(self.space_result)
-        print(self.space_result_text)
+        if self.space_result["result"]["score"] < 0.6:
+            self.speech("准确率低，建议检查")
+        # print(self.space_result)
+        # print(self.space_result_text)
 
     def on_alt_press(self):
         pass
@@ -60,6 +66,10 @@ class ChunJi:
         wf.setframerate(RATE)
         wf.writeframes(b''.join(frames))
         wf.close()
+
+    def speech(self, text):
+        tts(text)
+        playsound('tts.wav')
 
 
 if __name__ == '__main__':
