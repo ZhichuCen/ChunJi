@@ -21,8 +21,8 @@ class ChunJi:
         self.space_result_text = self.space_result["result"]["text"]
         if self.space_result["result"]["score"] < 0.6:
             self.speech("准确率低，建议检查")
-        # print(self.space_result)
-        # print(self.space_result_text)
+        print(self.space_result)
+        print(self.space_result_text)
 
     def on_alt_press(self):
         pass
