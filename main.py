@@ -12,6 +12,7 @@ class ChunJi:
         self.space_result_text = ""
         self.space_result = {}
         self.cursor = 0
+        self.mode = 'Command'
         keyboard.add_hotkey('space', self.on_space_press)
         keyboard.add_hotkey('alt', self.on_alt_press)
 
@@ -25,7 +26,16 @@ class ChunJi:
         print(self.space_result_text)
 
     def on_alt_press(self):
-        pass
+        self.audio_record('alt')
+        self.space_result = eval(sasr())
+        self.space_result_text = self.space_result["result"]["text"]
+        if self.space_result["result"]["score"] < 0.6:
+            self.speech("准确率低，建议检查")
+        else:
+            if self.mode == 'Command':
+                pass
+            elif self.mode == 'Insert':
+                pass
 
     def audio_record(self, key):
         CHUNK = 1024
