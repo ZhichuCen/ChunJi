@@ -9,33 +9,71 @@ from tts import tts
 
 class ChunJi:
     def __init__(self):
-        self.space_result_text = ""
-        self.space_result = {}
+        self.result_text = ""
+        self.result = {}
         self.cursor = 0
         self.mode = 'Command'
+        self.have_file = False
+        self.pending = ""
+        self.text = ""
         keyboard.add_hotkey('space', self.on_space_press)
         keyboard.add_hotkey('alt', self.on_alt_press)
 
     def on_space_press(self):
         self.audio_record('space')
-        self.space_result = eval(sasr())
-        self.space_result_text = self.space_result["result"]["text"]
-        if self.space_result["result"]["score"] < 0.6:
+        self.result = eval(sasr())
+        self.result_text = self.result["result"]["text"]
+        if self.result["result"]["score"] < 0.6:
             self.speech("准确率低，建议检查")
-        print(self.space_result)
-        print(self.space_result_text)
+        print(self.result)
+        print(self.result_text)
 
     def on_alt_press(self):
         self.audio_record('alt')
-        self.space_result = eval(sasr())
-        self.space_result_text = self.space_result["result"]["text"]
-        if self.space_result["result"]["score"] < 0.6:
+        self.result = eval(sasr())
+        self.result_text = self.result["result"]["text"]
+        if self.result["result"]["score"] < 0.6:
             self.speech("准确率低，建议检查")
+        elif self.pending:
+            if self.pending == '打开或新建':
+                self.response_file()
+
+
         else:
             if self.mode == 'Command':
                 pass
             elif self.mode == 'Insert':
-                pass
+                self.insert_method()
+
+    def insert_method(self):
+        if self.result_text == "退出":
+            self.mode = 'Command'
+        elif not self.have_file:
+            self.speech("请先打开或新建文件")
+            self.no_file()
+        else:
+            left = self.text[0:self.cursor]
+            right = self.text[self.cursor:-1]
+            self.cursor += len(self.result_text)
+            self.text = left + self.result_text + right
+
+    def response_file(self):
+        if self.result_text == '打开':
+            self.pending = ''
+            self.open_file()
+
+        elif self.result_text == '新建':
+            self.pending = ''
+            self.new_file()
+
+        else:
+            self.speech('错误，请选择打开或新建')
+
+    def no_file(self):
+        self.speech('打开或新建')
+        self.pending = '打开或新建'
+
+    def open_file:
 
     def audio_record(self, key):
         CHUNK = 1024

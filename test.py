@@ -59,6 +59,6 @@
 #     # wait里也可以设置按键，说明当按到该键时结束
 
 t = 'abcdefg'
-print(t[1:2])
+print(t[2::])
 
 
