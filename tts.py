@@ -39,14 +39,14 @@ def tts(text):
     # 设置音高, [-500, 500], 默认0
     ttsc_request.set_pitch(0)
     # 设置音速, [-500, 500], 默认0
-    ttsc_request.set_speed(0)
+    ttsc_request.set_speed(200)
     # 设置是否保存，默认False
     ttsc_request.set_saved(True)
     # 设置保存路径，只有设置保存，此参数才生效
     ttsc_request.set_saved_path(path)
 
     # step3 发送请求，返回结果。如果设置保存，可在指定路径里查看保存的音频。
-    # result = ttsc_client.get_ttsc_response(ttsc_request)
+    result = ttsc_client.get_ttsc_response(ttsc_request)
     # print(json.dumps(result, indent=2, ensure_ascii=False))
 
 

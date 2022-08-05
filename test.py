@@ -58,7 +58,22 @@
 #     keyboard.wait('esc')
 #     # wait里也可以设置按键，说明当按到该键时结束
 
-t = 'abcdefg'
-print(t[2::])
+# t = 'abcdefg'
+# print(t[2::])
+# import os
 
+# print(os.listdir())
+
+# t = '无12'
+# print(int(t))
+
+# import chinese2digits as c2d
+#
+# #混合提取
+# print(c2d.takeNumberFromString('我123一二三')['replacedText'])
+
+text = "abc.txt"
+if "." in text:
+    text = text.replace(".", "点")
+print(text)
 
