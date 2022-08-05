@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+import os
+import sys
 import wave
-import pyaudio
+
 import keyboard
+import pyaudio
 from playsound import playsound
+
 from sasr import sasr
 from tts import tts
-import os
 
 
 class ChunJi:
@@ -21,6 +24,7 @@ class ChunJi:
         self.pending = ""
         self.text = ""
         self.name = ""
+        self.saved = True
         # keyboard.add_hotkey("alt", self.on_alt_press)
         keyboard.add_hotkey("space", self.on_space_press)
 
@@ -67,12 +71,17 @@ class ChunJi:
                 self.insert_method()
 
     def command_method(self):
-        if self.result_text == "输入":
+        if self.result_text in ['打字', '输入', '键入']:
             if not self.have_file:
                 self.no_file()
             else:
                 self.mode = "Insert"
                 self.speech("当前模式：输入")
+        elif self.result_text == "保存":
+            self.save_file()
+
+        elif self.result_text in ['退出', '关闭']:
+            self.exit()
 
     def insert_method(self):
         if self.result_text == "退出":
@@ -85,7 +94,21 @@ class ChunJi:
             right = self.text[self.cursor:-1]
             self.cursor += len(self.result_text)
             self.text = left + self.result_text + right
+            self.saved = False
             print(self.text)
+
+    def save_file(self):
+        with open(self.name, 'w') as f:
+            f.write(self.text)
+        self.saved = True
+        self.speech('保存成功')
+
+    def exit(self):
+        if not self.saved:
+            self.speech('警告：当前文件未保存')
+        else:
+            self.speech('欢迎下次使用', block=True)
+            sys.exit()
 
     def response_file(self):
         if self.result_text == "打开":
@@ -109,7 +132,7 @@ class ChunJi:
         self.pending = "命名确认"
 
     def confirm_name(self):
-        if self.result_text == "是":
+        if self.result_text in ['是', '确认', '是的']:
             self.name = self.unconfirmed_name
             self.speech("新建成功")
             self.have_file = True
@@ -206,5 +229,5 @@ class ChunJi:
 
 
 if __name__ == "__main__":
-    ChunJi_1 = ChunJi()
+    chunji = ChunJi()
     keyboard.wait("esc")
