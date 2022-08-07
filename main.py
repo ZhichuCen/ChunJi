@@ -77,6 +77,14 @@ class ChunJi:
             else:
                 self.mode = "Insert"
                 self.speech("当前模式：输入")
+
+        elif self.result_text in ['朗读上一句', '读上一句']:
+            self.read_content('上一句')
+        elif self.result_text in ['朗读下一句', '读下一句']:
+            self.read_content('下一句')
+        elif self.result_text in ['朗读全文', '全文朗读', '读全文']:
+            self.read_content('全文')
+
         elif self.result_text == "保存":
             self.save_file()
 
@@ -96,6 +104,22 @@ class ChunJi:
             self.text = left + self.result_text + right
             self.saved = False
             print(self.text)
+
+    def read_content(self, content):
+        PUNC = {'。': '句号', '，': '逗号', '、': '顿号', '；': '分号', '：': '冒号', '？': '问号'}
+        if content == '上一句':
+            pass
+        elif content == '下一句':
+            pass
+        elif content == '全文':
+            self.speech(self.text)
+
+    def delete_method(self, content):
+
+        if content == '上一句':
+            pass
+        elif content == '下一句':
+            pass
 
     def save_file(self):
         with open(self.name, 'w') as f:
@@ -137,6 +161,7 @@ class ChunJi:
             self.speech("新建成功")
             self.have_file = True
             self.pending = ""
+            self.saved = False
         else:
             self.speech('请重新说出文件名')
             self.pending = "命名"

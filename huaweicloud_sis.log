@@ -8,3 +8,4 @@
 [2022-07-15 21:18:04,131] - [ERROR] - [status WebsocketStatus.STATE_CLOSE can't send binary data]
 [2022-07-15 21:24:45,366] - [INFO] - [websocket open]
 [2022-07-15 21:24:47,951] - [INFO] - [websocket close]
+[2022-08-07 13:36:11,624] - [ERROR] - [Error occurs in POST, the client will retry 5 times. Error message is ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))]

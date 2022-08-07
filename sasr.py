@@ -55,7 +55,7 @@ def sasr():
     # 设置是否添加标点，yes or no，默认no
     asr_request.set_add_punc('no')
     # 设置是否将语音中数字转写为阿拉伯数字，yes or no，默认yes
-    asr_request.set_digit_norm('yes')
+    asr_request.set_digit_norm('no')
     # 设置是否添加热词表id，没有则不填
     # asr_request.set_vocabulary_id(None)
     # 设置是否需要word_info，yes or no, 默认no
