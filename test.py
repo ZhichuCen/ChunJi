@@ -72,8 +72,46 @@
 # #混合提取
 # print(c2d.takeNumberFromString('我123一二三')['replacedText'])
 
-text = "abc.txt"
-if "." in text:
-    text = text.replace(".", "点")
-print(text)
+# text = "abc.txt"
+# if "." in text:
+#     text = text.replace(".", "点")
+# print(text)
 
+# print(len("你好哈哈"))
+# for i in range(4):
+#     print(i)
+
+with open('文档.txt', 'r') as f:
+    text = f.read()
+# print('1\n'+text[37]+'\n1')
+# t = '\n' == text[36]
+# print(t)
+
+PUNC = {'。': '句号', '.': '点', '，': '逗号', ',': '逗号', '、': '顿号', '；': '分号', ';': '分号',
+        '：': '冒号', ':': '冒号', '？': '问号', '?': '问号', '！': '感叹号', '!': '感叹号',
+        '"': '引号', "'": '引号', '“': '引号', '”': '引号', '\n': '换行'}
+
+cursor = 55
+print(text[cursor])
+
+print('left')
+left = text[0:cursor]
+print(left)
+l = len(left)
+
+for i in range(l):
+    t = left[-1 - i]
+    if t in PUNC.keys() and i != 0:
+        print(left[-i:])
+        break
+
+print('right')
+
+right = text[cursor:-1]
+print(right)
+r = len(right)
+for i in range(r):
+    t = right[i]
+    if t in PUNC.keys() and i != 0:
+        print(right[:i+1])
+        break
