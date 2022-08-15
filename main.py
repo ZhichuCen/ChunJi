@@ -28,7 +28,8 @@ class ChunJi:
         self.pending = ""
         self.text = ""
         self.name = ""
-        self.saved = True
+        # self.saved = True
+        self.previous_saved = ""
         # keyboard.add_hotkey("alt", self.on_alt_press)
         keyboard.add_hotkey("space", self.on_space_press)
 
@@ -112,7 +113,7 @@ class ChunJi:
             right = self.text[self.cursor:-1]
             self.cursor += len(self.result_text)
             self.text = left + self.result_text + right
-            self.saved = False
+            # self.saved = False
             print(self.text)
 
     def read_aloud_method(self):
@@ -158,7 +159,7 @@ class ChunJi:
             l = len(left)
             for i in range(l):
                 t = left[-1 - i]
-                if t in PUNC.keys() and i != 0:
+                if t in PUNC.keys() and i != 0 and i != 1:
                     return left[-i:]
             return left
 
@@ -167,18 +168,19 @@ class ChunJi:
             r = len(right)
             for i in range(r):
                 t = right[i]
-                if t in PUNC.keys() and i != 0:
+                if t in PUNC.keys() and i != 0 and i != 1:
                     return right[:i + 1]
             return right
 
     def save_file(self):
         with open(self.name, 'w') as f:
             f.write(self.text)
-        self.saved = True
+        # self.saved = True
+        self.previous_saved = self.text
         self.speech('保存成功')
 
     def exit(self):
-        if not self.saved:
+        if self.text != self.previous_saved:
             self.speech('警告：当前文件未保存')
         else:
             self.speech('欢迎下次使用', block=True)
@@ -211,7 +213,7 @@ class ChunJi:
             self.speech("新建成功")
             self.have_file = True
             self.pending = ""
-            self.saved = False
+            # self.saved = False
         else:
             self.speech('请重新说出文件名')
             self.pending = "命名"
@@ -292,7 +294,7 @@ class ChunJi:
         wf.close()
 
     @staticmethod
-    def speech(text, block=False, filename=False, read_punc = False):
+    def speech(text, block=False, filename=False, read_punc=False):
         if filename:
             if "." in text:
                 text = text.replace(".", "点")
@@ -300,7 +302,6 @@ class ChunJi:
         if read_punc:
             for i in text:
                 if i in PUNC.keys():
-
 
         print(text)
         tts(text)
