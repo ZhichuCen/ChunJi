@@ -91,27 +91,32 @@ PUNC = {'。': '句号', '.': '点', '，': '逗号', ',': '逗号', '、': '顿
         '：': '冒号', ':': '冒号', '？': '问号', '?': '问号', '！': '感叹号', '!': '感叹号',
         '"': '引号', "'": '引号', '“': '引号', '”': '引号', '\n': '换行'}
 
-cursor = 55
-print(text[cursor])
+for i in PUNC.keys():
+    text = text.replace(i, ' ' + PUNC[i] + ' ')
 
-print('left')
-left = text[0:cursor]
-print(left)
-l = len(left)
+print(text)
 
-for i in range(l):
-    t = left[-1 - i]
-    if t in PUNC.keys() and i != 0:
-        print(left[-i:])
-        break
-
-print('right')
-
-right = text[cursor:-1]
-print(right)
-r = len(right)
-for i in range(r):
-    t = right[i]
-    if t in PUNC.keys() and i != 0:
-        print(right[:i+1])
-        break
+# cursor = 55
+# print(text[cursor])
+#
+# print('left')
+# left = text[0:cursor]
+# print(left)
+# l = len(left)
+#
+# for i in range(l):
+#     t = left[-1 - i]
+#     if t in PUNC.keys() and i != 0:
+#         print(left[-i:])
+#         break
+#
+# print('right')
+#
+# right = text[cursor:-1]
+# print(right)
+# r = len(right)
+# for i in range(r):
+#     t = right[i]
+#     if t in PUNC.keys() and i != 0:
+#         print(right[:i+1])
+#         break

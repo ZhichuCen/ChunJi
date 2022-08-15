@@ -17,6 +17,8 @@ PUNC = {'。': '句号', '.': '点', '，': '逗号', ',': '逗号', '、': '顿
 
 class ChunJi:
     def __init__(self):
+        self.last_undo = ""
+        self.can_redo = False
         self.unconfirmed_name = ""
         self.open_list = []
         self.read_file_tts = ""
@@ -30,6 +32,7 @@ class ChunJi:
         self.name = ""
         # self.saved = True
         self.previous_saved = ""
+        self.log = []
         # keyboard.add_hotkey("alt", self.on_alt_press)
         keyboard.add_hotkey("space", self.on_space_press)
 
@@ -72,6 +75,9 @@ class ChunJi:
             elif self.pending == '朗读选择':
                 self.select_read_method()
 
+            elif self.pending == '移动光标':
+                self.move_cursor_to()
+
         else:
             if self.mode == "Command":
                 self.command_method()
@@ -93,10 +99,19 @@ class ChunJi:
         # elif self.result_text in ['朗读全文', '全文朗读', '读全文']:
         #     self.read_content('全文')
 
-        elif self.result_text in ['朗读', '读', ]:
+        elif self.result_text in ['朗读', '读']:
             self.read_aloud_method()
 
-        elif self.result_text == "保存":
+        elif self.result_text in ['移动', '移动光标']:
+            self.move_cursor_method()
+
+        elif self.result_text in ['撤销', ' 撤回']:
+            self.undo()
+
+        elif self.result_text in ['重做', '取消撤回']:
+            self.redo()
+
+        elif self.result_text in ["保存", '存储']:
             self.save_file()
 
         elif self.result_text in ['退出', '关闭']:
@@ -109,12 +124,35 @@ class ChunJi:
         elif not self.have_file:
             self.no_file()
         else:
+            self.log.append(self.text)
             left = self.text[0:self.cursor]
             right = self.text[self.cursor:-1]
             self.cursor += len(self.result_text)
             self.text = left + self.result_text + right
             # self.saved = False
             print(self.text)
+
+    def move_cursor_method(self):
+        self.pending = '移动光标'
+        self.speech('请选择光标将移动的位置')
+
+    # def move_cursor_to(self):
+
+
+    def undo(self):
+        self.last_undo = self.text
+        self.can_redo = True
+        self.text = self.log.pop()
+        self.speech('已撤销')
+
+    def redo(self):
+        if self.can_redo:
+            self.log.append(self.text)
+            self.text = self.last_undo
+            self.can_redo = False
+            self.speech('已重做')
+        else:
+            self.speech('无法重做')
 
     def read_aloud_method(self):
         self.speech('请选择要朗读的内容')
@@ -124,10 +162,14 @@ class ChunJi:
 
         if self.result_text in ['全文', '所有', '全']:
             self.read_content('全文')
-        elif self.result_text in ['上一句']:
+        elif self.result_text in ['上一句', '上句']:
             self.read_content('上一句')
-        elif self.result_text in ['下一句']:
+        elif self.result_text in ['下一句', '下句']:
             self.read_content('下一句')
+        elif self.result_text in ['上一段', '上段']:
+            self.read_content('上一段')
+        elif self.result_text in ['下一段', '下段']:
+            self.read_content('下一段')
 
         else:
             self.speech('请正确选择朗读内容')
@@ -136,12 +178,16 @@ class ChunJi:
         self.pending = ''
 
         if content == '全文':
-            self.speech(self.text)
+            self.speech(self.text, read_punc=True)
 
         elif content == '上一句':
-            self.speech(self.selector('上一句'))
+            self.speech(self.selector('上一句'), read_punc=True)
         elif content == '下一句':
-            self.speech(self.selector('下一句'))
+            self.speech(self.selector('下一句'), read_punc=True)
+        elif content == '上一段':
+            self.speech(self.selector('上一段'), read_punc=True)
+        elif content == '下一段':
+            self.speech(self.selector('下一段'), read_punc=True)
 
     def delete_method(self, content):
 
@@ -169,6 +215,24 @@ class ChunJi:
             for i in range(r):
                 t = right[i]
                 if t in PUNC.keys() and i != 0 and i != 1:
+                    return right[:i + 1]
+            return right
+
+        elif area == '上一段':
+            left = self.text[0:self.cursor]
+            l = len(left)
+            for i in range(l):
+                t = left[-1 - i]
+                if t == '\n' and i != 0 and i != 1:
+                    return left[-i:]
+            return left
+
+        elif area == '下一段':
+            right = self.text[self.cursor:-1]
+            r = len(right)
+            for i in range(r):
+                t = right[i]
+                if t == '\n' and i != 0 and i != 1:
                     return right[:i + 1]
             return right
 
@@ -210,10 +274,11 @@ class ChunJi:
     def confirm_name(self):
         if self.result_text in ['是', '确认', '是的']:
             self.name = self.unconfirmed_name
-            self.speech("新建成功")
             self.have_file = True
             self.pending = ""
+            self.log.append(self.text)
             # self.saved = False
+            self.speech("新建成功。当前模式：控制")
         else:
             self.speech('请重新说出文件名')
             self.pending = "命名"
@@ -250,7 +315,9 @@ class ChunJi:
             self.pending = ""
             self.have_file = True
             self.cursor = len(self.text)
-            self.speech('已打开文件:' + self.name, filename=True)
+            self.previous_saved = self.text
+            self.log.append(self.text)
+            self.speech('已打开文件:' + self.name + '。当前模式：控制', filename=True)
 
     @staticmethod
     def audio_record(key):
@@ -300,8 +367,8 @@ class ChunJi:
                 text = text.replace(".", "点")
 
         if read_punc:
-            for i in text:
-                if i in PUNC.keys():
+            for i in PUNC.keys():
+                text = text.replace(i, ' ' + PUNC[i] + ' ')
 
         print(text)
         tts(text)
