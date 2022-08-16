@@ -143,17 +143,33 @@
 # print(PUNC.keys())
 # print(PUNC.values())
 
-PUNC_FULL = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号',
-             '：': '冒号', '？': '问号', '！': '感叹号',
-             '“': '左引号', '”': '右引号', '\n': '换行',
-             '（': '左括号', '）': '右括号',
-             '——': '破折号', '—': '连接号', '-': '减号',
-             '······': '省略号', '·': '间隔号', '《': '左书名号', '》': '右书名号'
-             }
+# PUNC_FULL = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号',
+#              '：': '冒号', '？': '问号', '！': '感叹号',
+#              '“': '左引号', '”': '右引号', '\n': '换行',
+#              '（': '左括号', '）': '右括号',
+#              '——': '破折号', '—': '连接号', '-': '减号',
+#              '······': '省略号', '·': '间隔号', '《': '左书名号', '》': '右书名号'
+#              }
+#
+# PUNC_HALF = {'；': '分号', ',': '逗号', ':': '冒号', '?': '问号', '!': '感叹号',
+#              '(': '左括号', ')': '右括号', '...': '省略号', '.': '点', '"': '双引号', "'": '单引号',
+#              }
+#
+# # print(dict(PUNC_FULL.items()+PUNC_HALF.items()))
+# print(dict(PUNC_FULL, **PUNC_HALF))
 
-PUNC_HALF = {'；': '分号', ',': '逗号', ':': '冒号', '?': '问号', '!': '感叹号',
-             '(': '左括号', ')': '右括号', '...': '省略号', '.': '点', '"': '双引号', "'": '单引号',
-             }
+def abstract_digit(text):
+    import chinese2digits as c2d
+    return c2d.takeNumberFromString(text)['digitsStringList']
 
-# print(dict(PUNC_FULL.items()+PUNC_HALF.items()))
-print(dict(PUNC_FULL, **PUNC_HALF))
+txt = '三四五你好呀一二三'
+print(abstract_digit(txt))
+
+log = []
+log.append(('ss',1))
+print(log)
+t,c = log.pop()
+print(t,c)
+
+print('')
+print(txt.replace('三','3',1))

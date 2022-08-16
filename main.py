@@ -92,8 +92,8 @@ class ChunJi:
             elif self.pending == '朗读选择':
                 self.insta_read_method()
 
-            elif self.pending == '移动光标':
-                self.move_cursor_to()
+            # elif self.pending == '移动光标':
+            #     self.move_cursor_to()
 
         else:
             if self.mode == "Command":
@@ -108,6 +108,9 @@ class ChunJi:
             else:
                 self.mode = "Insert"
                 self.speech("当前模式：输入")
+        elif '输入' in self.result_text:
+            self.result_text = self.result_text.replace('输入', '', 1)
+            self.insert_method()
         #
         # elif self.result_text in ['朗读上一句', '读上一句']:
         #     self.read_content('上一句')
@@ -122,13 +125,16 @@ class ChunJi:
         elif '朗读' in self.result_text or '读' in self.result_text:
             self.insta_read_method()
 
-        elif self.result_text in ['移动', '移动光标']:
+        # elif self.result_text in ['移动', '移动光标']:
+        #     self.move_cursor_method()
+
+        elif '移动' in self.result_text or '光标' in self.result_text:
             self.move_cursor_method()
 
         elif self.result_text in ['撤销', ' 撤回']:
             self.undo()
 
-        elif self.result_text in ['重做', '取消撤回']:
+        elif self.result_text in ['重做', '取消撤回', '还原']:
             self.redo()
 
         elif self.result_text in ["保存", '存储']:
@@ -137,6 +143,9 @@ class ChunJi:
         elif self.result_text in ['退出', '关闭']:
             self.exit()
 
+        else:
+            self.speech('无效命令')
+
     def insert_method(self):
         if self.result_text == "退出":
             self.mode = "Command"
@@ -144,11 +153,11 @@ class ChunJi:
         elif not self.have_file:
             self.no_file()
         else:
-            self.log.append(self.text)
+            self.log.append((self.text, self.cursor))
 
             if self.result_text in PUNC_FULL.values():
                 self.result_text = list(PUNC_FULL.keys())[list(PUNC_FULL.values()).index(self.result_text)]
-                self.speech('插入标点:'+self.result_text)
+                self.speech('插入标点:' + PUNC[self.result_text])
 
             left = self.text[0:self.cursor]
             right = self.text[self.cursor:-1]
@@ -158,20 +167,50 @@ class ChunJi:
             print(self.text)
 
     def move_cursor_method(self):
-        self.pending = '移动光标'
-        self.speech('请选择光标将移动的位置')
+        # self.pending = '移动光标'
+
+        # self.speech('请选择光标将移动的位置')
+        if '头' in self.result_text or '开' in self.result_text:
+            self.log.append((self.text, self.cursor))
+            self.cursor = 0
+            self.speech('光标已移动至文档开头')
+
+        elif '尾' in self.result_text or '末' in self.result_text:
+            self.log.append((self.text, self.cursor))
+            self.cursor = len(self.text)
+            self.speech('光标已移动至文档末尾')
+
+        elif ('前' in self.result_text or '上' in self.result_text) and ('字' in self.result_text):
+            self.log.append((self.text, self.cursor))
+            self.cursor -= self.abstract_digit(self.result_text)
+            if self.cursor < 0:
+                self.cursor = 0
+                self.speech('警告：超出文件范围，光标已移动至文档开头')
+            else:
+                self.speech('光标已前移' + str(self.abstract_digit(self.result_text)) + '字')
+
+        elif ('后' in self.result_text or '下' in self.result_text) and ('字' in self.result_text):
+            self.log.append((self.text, self.cursor))
+            self.cursor += self.abstract_digit(self.result_text)
+            if self.cursor > len(self.text):
+                self.cursor = len(self.text)
+                self.speech('警告：超出文件范围，光标已移动至文档末尾')
+            else:
+                self.speech('光标已后移' + str(self.abstract_digit(self.result_text)) + '字')
+
+        # elif
 
     # def move_cursor_to(self):
 
     def undo(self):
         self.last_undo = self.text
         self.can_redo = True
-        self.text = self.log.pop()
+        self.text, self.cursor = self.log.pop()
         self.speech('已撤销')
 
     def redo(self):
         if self.can_redo:
-            self.log.append(self.text)
+            self.log.append((self.text, self.cursor))
             self.text = self.last_undo
             self.can_redo = False
             self.speech('已重做')
@@ -185,13 +224,17 @@ class ChunJi:
     def insta_read_method(self):
         if ('全文' in self.result_text) or ('所有' in self.result_text) or ('全' in self.result_text):
             self.read_content('全文')
-        elif ('上一句' in self.result_text) or ('上句' in self.result_text):
+        elif ('上一句' in self.result_text) or ('上句' in self.result_text) or ('前一句' in self.result_text) or (
+                '前句' in self.result_text):
             self.read_content('上一句')
-        elif ('下一句' in self.result_text) or ('下句' in self.result_text):
+        elif ('下一句' in self.result_text) or ('下句' in self.result_text) or ('后一句' in self.result_text) or (
+                '后句' in self.result_text):
             self.read_content('下一句')
-        elif ('上一段' in self.result_text) or ('上段' in self.result_text):
+        elif ('上一段' in self.result_text) or ('上段' in self.result_text) or ('前一段' in self.result_text) or (
+                '前段' in self.result_text):
             self.read_content('上一段')
-        elif ('下一段' in self.result_text) or ('下段' in self.result_text):
+        elif ('下一段' in self.result_text) or ('下段' in self.result_text) or ('后一段' in self.result_text) or (
+                '后段' in self.result_text):
             self.read_content('下一段')
         else:
             self.speech('无法朗读内容')
@@ -314,7 +357,7 @@ class ChunJi:
             self.name = self.unconfirmed_name
             self.have_file = True
             self.pending = ""
-            self.log.append(self.text)
+            self.log.append((self.text, self.cursor))
             # self.saved = False
             self.speech("新建成功。当前模式：控制")
         else:
@@ -340,22 +383,22 @@ class ChunJi:
             print(self.open_list)
 
     def choose_file(self):
-        try:
-            self.result_text = self.chinese_to_digit(self.result_text)
-            index = int(self.result_text) - 1
-        except ValueError:
-            self.speech("请说数字")
-        else:
-            self.name = self.open_list[index]
-            with open(self.name, "r") as f:
-                self.text = f.read()
+        # try:
+        self.result_text = self.abstract_digit(self.result_text)
+        index = int(self.result_text) - 1
+        # except ValueError:
+        #     self.speech("请说数字")
+        # else:
+        self.name = self.open_list[index]
+        with open(self.name, "r") as f:
+            self.text = f.read()
 
-            self.pending = ""
-            self.have_file = True
-            self.cursor = len(self.text)
-            self.previous_saved = self.text
-            self.log.append(self.text)
-            self.speech('已打开文件:' + self.name + '。当前模式：控制', filename=True)
+        self.pending = ""
+        self.have_file = True
+        self.cursor = len(self.text)
+        self.previous_saved = self.text
+        self.log.append((self.text, self.cursor))
+        self.speech('已打开文件:' + self.name + '。当前模式：控制', filename=True)
 
     @staticmethod
     def audio_record(key):
@@ -414,9 +457,9 @@ class ChunJi:
         playsound("tts.wav", block=block)
 
     @staticmethod
-    def chinese_to_digit(text):
+    def abstract_digit(text):
         import chinese2digits as c2d
-        return c2d.takeNumberFromString(text)['replacedText']
+        return int(c2d.takeNumberFromString(text)['digitsStringList'][0])
 
 
 if __name__ == "__main__":
