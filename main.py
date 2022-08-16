@@ -10,9 +10,26 @@ from playsound import playsound
 from sasr import sasr
 from tts import tts
 
-PUNC = {'。': '句号', '.': '点', '，': '逗号', ',': '逗号', '、': '顿号', '；': '分号', ';': '分号',
-        '：': '冒号', ':': '冒号', '？': '问号', '?': '问号', '！': '感叹号', '!': '感叹号',
-        '"': '引号', "'": '引号', '“': '引号', '”': '引号', '\n': '换行'}
+PUNC_FULL = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号',
+             '：': '冒号', '？': '问号', '！': '感叹号',
+             '“': '左引号', '”': '右引号', '\n': '换行',
+             '（': '左括号', '）': '右括号',
+             '——': '破折号', '—': '连接号', '-': '减号',
+             '······': '省略号', '·': '间隔号', '《': '左书名号', '》': '右书名号'
+             }
+
+PUNC_HALF = {'；': '分号', ',': '逗号', ':': '冒号', '?': '问号', '!': '感叹号', '\n': '换行',
+             '(': '左括号', ')': '右括号', '...': '省略号', '.': '点', '"': '双引号', "'": '单引号',
+             }
+
+PUNC = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号', '：': '冒号', '？': '问号', '！': '感叹号',
+        '“': '左引号', '”': '右引号', '\n': '换行', '（': '左括号', '）': '右括号', '——': '破折号', '—': '连接号', '-': '减号',
+        '······': '省略号', '·': '间隔号', '《': '左书名号', '》': '右书名号',
+        '；': '分号', ',': '逗号', ':': '冒号', '?': '问号', '!': '感叹号', '(': '左括号', ')': '右括号',
+        '...': '省略号', '.': '点', '"': '双引号', "'": '单引号'}
+
+
+# GEN_PUNC = {'。': '句号'}
 
 
 class ChunJi:
@@ -73,7 +90,7 @@ class ChunJi:
                 self.confirm_name()
 
             elif self.pending == '朗读选择':
-                self.select_read_method()
+                self.insta_read_method()
 
             elif self.pending == '移动光标':
                 self.move_cursor_to()
@@ -102,6 +119,9 @@ class ChunJi:
         elif self.result_text in ['朗读', '读']:
             self.read_aloud_method()
 
+        elif '朗读' in self.result_text or '读' in self.result_text:
+            self.insta_read_method()
+
         elif self.result_text in ['移动', '移动光标']:
             self.move_cursor_method()
 
@@ -125,6 +145,11 @@ class ChunJi:
             self.no_file()
         else:
             self.log.append(self.text)
+
+            if self.result_text in PUNC_FULL.values():
+                self.result_text = list(PUNC_FULL.keys())[list(PUNC_FULL.values()).index(self.result_text)]
+                self.speech('插入标点:'+self.result_text)
+
             left = self.text[0:self.cursor]
             right = self.text[self.cursor:-1]
             self.cursor += len(self.result_text)
@@ -137,7 +162,6 @@ class ChunJi:
         self.speech('请选择光标将移动的位置')
 
     # def move_cursor_to(self):
-
 
     def undo(self):
         self.last_undo = self.text
@@ -158,21 +182,35 @@ class ChunJi:
         self.speech('请选择要朗读的内容')
         self.pending = '朗读选择'
 
-    def select_read_method(self):
-
-        if self.result_text in ['全文', '所有', '全']:
+    def insta_read_method(self):
+        if ('全文' in self.result_text) or ('所有' in self.result_text) or ('全' in self.result_text):
             self.read_content('全文')
-        elif self.result_text in ['上一句', '上句']:
+        elif ('上一句' in self.result_text) or ('上句' in self.result_text):
             self.read_content('上一句')
-        elif self.result_text in ['下一句', '下句']:
+        elif ('下一句' in self.result_text) or ('下句' in self.result_text):
             self.read_content('下一句')
-        elif self.result_text in ['上一段', '上段']:
+        elif ('上一段' in self.result_text) or ('上段' in self.result_text):
             self.read_content('上一段')
-        elif self.result_text in ['下一段', '下段']:
+        elif ('下一段' in self.result_text) or ('下段' in self.result_text):
             self.read_content('下一段')
-
         else:
-            self.speech('请正确选择朗读内容')
+            self.speech('无法朗读内容')
+
+    # def select_read_method(self):
+    #
+    #     if self.result_text in ['全文', '所有', '全']:
+    #         self.read_content('全文')
+    #     elif self.result_text in ['上一句', '上句']:
+    #         self.read_content('上一句')
+    #     elif self.result_text in ['下一句', '下句']:
+    #         self.read_content('下一句')
+    #     elif self.result_text in ['上一段', '上段']:
+    #         self.read_content('上一段')
+    #     elif self.result_text in ['下一段', '下段']:
+    #         self.read_content('下一段')
+    #
+    #     else:
+    #         self.speech('请正确选择朗读内容')
 
     def read_content(self, content):
         self.pending = ''
@@ -367,6 +405,7 @@ class ChunJi:
                 text = text.replace(".", "点")
 
         if read_punc:
+            text = text.replace(' ', '空格')
             for i in PUNC.keys():
                 text = text.replace(i, ' ' + PUNC[i] + ' ')
 
