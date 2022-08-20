@@ -1,29 +1,31 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 import sys
 import wave
 
 import keyboard
 import pyaudio
+
 from playsound import playsound
 
 from sasr import sasr
 from tts import tts
 
-PUNC_FULL = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号',
+PUNC_FULL = {'。': '句号', '，': '逗号', '、': '顿号', '；': '分号', '    ': '空两格',
              '：': '冒号', '？': '问号', '！': '感叹号',
-             '“': '左引号', '”': '右引号', '\n': '换行',
+             '“': '左引号', '”': '右引号', '\n': '回车',
              '（': '左括号', '）': '右括号',
              '——': '破折号', '—': '连接号', '-': '减号',
              '······': '省略号', '·': '间隔号', '《': '左书名号', '》': '右书名号'
              }
 
-PUNC_HALF = {'；': '分号', ',': '逗号', ':': '冒号', '?': '问号', '!': '感叹号', '\n': '换行',
+PUNC_HALF = {';': '分号', ',': '逗号', ':': '冒号', '?': '问号', '!': '感叹号', '\n': '回车',
              '(': '左括号', ')': '右括号', '...': '省略号', '.': '点', '"': '双引号', "'": '单引号',
              }
 
-PUNC = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号', '：': '冒号', '？': '问号', '！': '感叹号',
-        '“': '左引号', '”': '右引号', '\n': '换行', '（': '左括号', '）': '右括号', '——': '破折号', '—': '连接号', '-': '减号',
+PUNC = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号', '：': '冒号', '？': '问号', '！': '感叹号', '    ': '空两格',
+        '“': '左引号', '”': '右引号', '\n': '回车', '（': '左括号', '）': '右括号', '——': '破折号', '—': '连接号', '-': '减号',
         '······': '省略号', '·': '间隔号', '《': '左书名号', '》': '右书名号',
         '；': '分号', ',': '逗号', ':': '冒号', '?': '问号', '!': '感叹号', '(': '左括号', ')': '右括号',
         '...': '省略号', '.': '点', '"': '双引号', "'": '单引号'}
@@ -73,8 +75,9 @@ class ChunJi:
         self.result = eval(sasr())
         self.result_text = self.result["result"]["text"]
         print(self.result_text)
-        if self.result["result"]["score"] < 0.6:
+        if self.result["result"]["score"] < 0.5:
             self.speech("准确率低，建议检查")
+            print(self.result["result"]["score"])
         elif self.pending:
 
             if self.pending == "打开或新建":
@@ -125,13 +128,22 @@ class ChunJi:
         elif '朗读' in self.result_text or '读' in self.result_text:
             self.insta_read_method()
 
+        elif '纠错' in self.result_text or '检查' in self.result_text:
+            self.ai_corrector_method()
+
         # elif self.result_text in ['移动', '移动光标']:
         #     self.move_cursor_method()
 
         elif '移动' in self.result_text or '光标' in self.result_text:
             self.move_cursor_method()
 
-        elif self.result_text in ['撤销', ' 撤回']:
+        elif '查' in self.result_text or '找' in self.result_text:
+            self.find_method()
+
+        elif '删' in self.result_text:
+            self.delete_method()
+
+        elif self.result_text in ['撤销', '撤回']:
             self.undo()
 
         elif self.result_text in ['重做', '取消撤回', '还原']:
@@ -158,19 +170,108 @@ class ChunJi:
             if self.result_text in PUNC_FULL.values():
                 self.result_text = list(PUNC_FULL.keys())[list(PUNC_FULL.values()).index(self.result_text)]
                 self.speech('插入标点:' + PUNC[self.result_text])
+            elif self.result_text == '空格':
+                self.result_text = ' '
+                self.speech('插入空格')
 
             left = self.text[0:self.cursor]
-            right = self.text[self.cursor:-1]
+            right = self.text[self.cursor:]
             self.cursor += len(self.result_text)
             self.text = left + self.result_text + right
             # self.saved = False
             print(self.text)
 
+    def find_method(self):
+        pattern = r'[查找搜索\s]'
+        obj = re.sub(pattern, '', self.result_text)
+        find_result = self.find_text(obj)
+
+
+    def find_text(self, obj):
+        find_result = [0]
+        text = self.text
+        while text.find(obj) != -1:
+            cur = text.find(obj) + len(obj) + find_result[-1]
+            find_result.append(cur)
+            text = self.text[cur:]
+        return find_result[1:]
+
     def move_cursor_method(self):
         # self.pending = '移动光标'
 
         # self.speech('请选择光标将移动的位置')
-        if '头' in self.result_text or '开' in self.result_text:
+
+        if ('前' in self.result_text or '上' in self.result_text) and ('字' in self.result_text):
+            if self.abstract_digit(self.result_text) != -1:
+                self.log.append((self.text, self.cursor))
+                self.cursor -= self.abstract_digit(self.result_text)
+                if self.cursor < 0:
+                    self.cursor = 0
+                    self.speech('警告：超出文件范围，光标已移动至文档开头')
+                else:
+                    self.speech('光标已前移' + str(self.abstract_digit(self.result_text)) + '字')
+
+        elif ('后' in self.result_text or '下' in self.result_text) and ('字' in self.result_text):
+            if self.abstract_digit(self.result_text) != -1:
+                self.log.append((self.text, self.cursor))
+                self.cursor += self.abstract_digit(self.result_text)
+                if self.cursor > len(self.text):
+                    self.cursor = len(self.text)
+                    self.speech('警告：超出文件范围，光标已移动至文档末尾')
+                else:
+                    self.speech('光标已后移' + str(self.abstract_digit(self.result_text)) + '字')
+
+        elif ('前' in self.result_text or '上' in self.result_text or '首' in self.result_text) and (
+                '句' in self.result_text):
+            if self.cursor != 0:
+                self.log.append((self.text, self.cursor))
+                if self.text[self.cursor - 1] in PUNC.keys():
+                    self.cursor -= 1
+                while not self.text[self.cursor - 1] in PUNC.keys():
+                    self.cursor -= 1
+                self.speech('光标已移动至前一句')
+            else:
+                self.speech('光标已在文档开头')
+
+        elif (
+                '后' in self.result_text or '下' in self.result_text or '末' in self.result_text or
+                '尾' in self.result_text) and ('句' in self.result_text):
+            if self.cursor != len(self.text):
+                self.log.append((self.text, self.cursor))
+                if self.text[self.cursor - 1] in PUNC.keys():
+                    self.cursor += 1
+                while not self.text[self.cursor - 1] in PUNC.keys():
+                    self.cursor += 1
+                self.speech('光标已移动至后一句')
+            else:
+                self.speech('光标已在文档末尾')
+
+        elif ('前' in self.result_text or '上' in self.result_text or '首' in self.result_text) and (
+                '段' in self.result_text):
+            if self.cursor != 0:
+                self.log.append((self.text, self.cursor))
+                if self.text[self.cursor - 1] == '\n':
+                    self.cursor -= 1
+                while not self.text[self.cursor - 1] == '\n':
+                    self.cursor -= 1
+                self.speech('光标已移动至前一段')
+            else:
+                self.speech('光标已在文档开头')
+
+        elif (
+                '后' in self.result_text or '下' in self.result_text or '末' in self.result_text
+                or '尾' in self.result_text) and ('段' in self.result_text):
+            if self.cursor != len(self.text):
+                self.log.append((self.text, self.cursor))
+                if self.text[self.cursor - 1] == '\n':
+                    self.cursor += 1
+                while not self.text[self.cursor - 1] == '\n':
+                    self.cursor += 1
+                self.speech('光标已移动至后一段')
+            else:
+                self.speech('光标已在文档末尾')
+
+        elif '头' in self.result_text or '开' in self.result_text:
             self.log.append((self.text, self.cursor))
             self.cursor = 0
             self.speech('光标已移动至文档开头')
@@ -180,25 +281,8 @@ class ChunJi:
             self.cursor = len(self.text)
             self.speech('光标已移动至文档末尾')
 
-        elif ('前' in self.result_text or '上' in self.result_text) and ('字' in self.result_text):
-            self.log.append((self.text, self.cursor))
-            self.cursor -= self.abstract_digit(self.result_text)
-            if self.cursor < 0:
-                self.cursor = 0
-                self.speech('警告：超出文件范围，光标已移动至文档开头')
-            else:
-                self.speech('光标已前移' + str(self.abstract_digit(self.result_text)) + '字')
-
-        elif ('后' in self.result_text or '下' in self.result_text) and ('字' in self.result_text):
-            self.log.append((self.text, self.cursor))
-            self.cursor += self.abstract_digit(self.result_text)
-            if self.cursor > len(self.text):
-                self.cursor = len(self.text)
-                self.speech('警告：超出文件范围，光标已移动至文档末尾')
-            else:
-                self.speech('光标已后移' + str(self.abstract_digit(self.result_text)) + '字')
-
-        # elif
+        else:
+            self.speech('无法移动光标')
 
     # def move_cursor_to(self):
 
@@ -239,6 +323,43 @@ class ChunJi:
         else:
             self.speech('无法朗读内容')
 
+    def ai_corrector_method(self):
+        if ('全文' in self.result_text) or ('所有' in self.result_text) or ('全' in self.result_text):
+            self.check_content(self.selector('全文'))
+        elif ('上一句' in self.result_text) or ('上句' in self.result_text) or ('前一句' in self.result_text) or (
+                '前句' in self.result_text):
+            self.check_content(self.selector('上一句'))
+        elif ('下一句' in self.result_text) or ('下句' in self.result_text) or ('后一句' in self.result_text) or (
+                '后句' in self.result_text):
+            self.check_content(self.selector('下一句'))
+        elif ('上一段' in self.result_text) or ('上段' in self.result_text) or ('前一段' in self.result_text) or (
+                '前段' in self.result_text):
+            self.check_content(self.selector('上一段'))
+        elif ('下一段' in self.result_text) or ('下段' in self.result_text) or ('后一段' in self.result_text) or (
+                '后段' in self.result_text):
+            self.check_content(self.selector('下一段'))
+        else:
+            self.speech('无法检测内容')
+
+    def check_content(self, content):
+        self.speech('AI检查中')
+        import pycorrector
+        corrected_sent, detail = pycorrector.correct(content)
+        print(corrected_sent, detail)
+        if len(detail) == 0:
+            self.speech('无智能纠错内容')
+        else:
+            self.speech('检测出' + str(len(detail)) + '个错误', block=True)
+            t = 1
+            for i in detail:
+                self.speech('第' + str(t) + '个错误：' + i[0] + '应为' + i[1], block=True)
+                t += 1
+            # self.speech('请选择要改正的错误')
+            # self.pending = '选择纠错'
+            self.speech('已纠错')
+            self.log.append((self.text, self.cursor))
+            self.text = corrected_sent
+
     # def select_read_method(self):
     #
     #     if self.result_text in ['全文', '所有', '全']:
@@ -270,12 +391,91 @@ class ChunJi:
         elif content == '下一段':
             self.speech(self.selector('下一段'), read_punc=True)
 
-    def delete_method(self, content):
+    def delete_method(self):
+        temp_cursor = self.cursor
+        if ('前' in self.result_text or '上' in self.result_text) and ('字' in self.result_text):
+            if self.abstract_digit(self.result_text) != -1:
+                self.log.append((self.text, self.cursor))
+                temp_cursor -= self.abstract_digit(self.result_text)
+                if temp_cursor < 0:
+                    temp_cursor = 0
+                    self.speech('警告：超出文件范围，删除至文档开头')
+                else:
+                    self.speech('已删除前' + str(self.abstract_digit(self.result_text)) + '字')
+                self.del_area(temp_cursor, self.cursor)
 
-        if content == '上一句':
-            pass
-        elif content == '下一句':
-            pass
+        elif ('后' in self.result_text or '下' in self.result_text) and ('字' in self.result_text):
+            if self.abstract_digit(self.result_text) != -1:
+                self.log.append((self.text, self.cursor))
+                temp_cursor += self.abstract_digit(self.result_text)
+                if temp_cursor > len(self.text):
+                    temp_cursor = len(self.text)
+                    self.speech('警告：超出文件范围，删除至文档末尾')
+                else:
+                    self.speech('已删除后' + str(self.abstract_digit(self.result_text)) + '字')
+                self.del_area(temp_cursor, self.cursor)
+
+        elif ('前' in self.result_text or '上' in self.result_text or '首' in self.result_text) and (
+                '句' in self.result_text):
+            if temp_cursor != 0:
+                self.log.append((self.text, self.cursor))
+                if self.text[temp_cursor - 1] in PUNC.keys():
+                    temp_cursor -= 1
+                while not self.text[temp_cursor - 1] in PUNC.keys():
+                    temp_cursor -= 1
+                self.speech('已删除前一句')
+            else:
+                self.speech('光标在文档开头')
+            self.del_area(temp_cursor, self.cursor)
+
+        elif (
+                '后' in self.result_text or '下' in self.result_text or '末' in self.result_text or
+                '尾' in self.result_text) and ('句' in self.result_text):
+            if temp_cursor != len(self.text):
+                self.log.append((self.text, self.cursor))
+                if self.text[temp_cursor - 1] in PUNC.keys():
+                    temp_cursor += 1
+                while not self.text[temp_cursor - 1] in PUNC.keys():
+                    temp_cursor += 1
+                self.speech('已删除后一句')
+            else:
+                self.speech('光标在文档末尾')
+            self.del_area(temp_cursor, self.cursor)
+
+        elif ('前' in self.result_text or '上' in self.result_text or '首' in self.result_text) and (
+                '段' in self.result_text):
+            if temp_cursor != 0:
+                self.log.append((self.text, self.cursor))
+                if self.text[temp_cursor - 1] == '\n':
+                    temp_cursor -= 1
+                while not self.text[temp_cursor - 1] == '\n':
+                    temp_cursor -= 1
+                self.speech('已删除前一段')
+            else:
+                self.speech('光标在文档开头')
+            self.del_area(temp_cursor, self.cursor)
+
+        elif (
+                '后' in self.result_text or '下' in self.result_text or '末' in self.result_text
+                or '尾' in self.result_text) and ('段' in self.result_text):
+            if temp_cursor != len(self.text):
+                self.log.append((self.text, self.cursor))
+                if self.text[temp_cursor - 1] == '\n':
+                    temp_cursor += 1
+                while not self.text[temp_cursor - 1] == '\n':
+                    temp_cursor += 1
+                self.speech('已删除后一段')
+            else:
+                self.speech('光标已在文档末尾')
+            self.del_area(temp_cursor, self.cursor)
+
+    def del_area(self, start, end):
+        if start > end:
+            start = start + end
+            end = start - end
+            start = start - end
+        self.text = self.text[:start] + self.text[end:]
+        self.cursor = start
 
     def selector(self, area):
 
@@ -291,7 +491,7 @@ class ChunJi:
             return left
 
         elif area == '下一句':
-            right = self.text[self.cursor:-1]
+            right = self.text[self.cursor:]
             r = len(right)
             for i in range(r):
                 t = right[i]
@@ -309,7 +509,7 @@ class ChunJi:
             return left
 
         elif area == '下一段':
-            right = self.text[self.cursor:-1]
+            right = self.text[self.cursor:]
             r = len(right)
             for i in range(r):
                 t = right[i]
@@ -332,11 +532,11 @@ class ChunJi:
             sys.exit()
 
     def response_file(self):
-        if self.result_text == "打开":
+        if "打开" in self.result_text:
             self.pending = ""
             self.open_file()
 
-        elif self.result_text == "新建":
+        elif "新建" in self.result_text or "兴建" in self.result_text:
             self.pending = ""
             self.new_file()
 
@@ -385,20 +585,25 @@ class ChunJi:
     def choose_file(self):
         # try:
         self.result_text = self.abstract_digit(self.result_text)
-        index = int(self.result_text) - 1
-        # except ValueError:
-        #     self.speech("请说数字")
-        # else:
-        self.name = self.open_list[index]
-        with open(self.name, "r") as f:
-            self.text = f.read()
+        if self.result_text != -1:
+            index = int(self.result_text) - 1
+            # except ValueError:
+            #     self.speech("请说数字")
+            # else:
+            try:
+                self.name = self.open_list[index]
+            except IndexError:
+                self.speech('数字错误')
+            else:
+                with open(self.name, "r") as f:
+                    self.text = f.read()
 
-        self.pending = ""
-        self.have_file = True
-        self.cursor = len(self.text)
-        self.previous_saved = self.text
-        self.log.append((self.text, self.cursor))
-        self.speech('已打开文件:' + self.name + '。当前模式：控制', filename=True)
+                self.pending = ""
+                self.have_file = True
+                self.cursor = len(self.text)
+                self.previous_saved = self.text
+                self.log.append((self.text, self.cursor))
+                self.speech('已打开文件:' + self.name + '。当前模式：控制', filename=True)
 
     @staticmethod
     def audio_record(key):
@@ -448,6 +653,7 @@ class ChunJi:
                 text = text.replace(".", "点")
 
         if read_punc:
+            text = text.replace('    ', '空两格')
             text = text.replace(' ', '空格')
             for i in PUNC.keys():
                 text = text.replace(i, ' ' + PUNC[i] + ' ')
@@ -456,10 +662,15 @@ class ChunJi:
         tts(text)
         playsound("tts.wav", block=block)
 
-    @staticmethod
-    def abstract_digit(text):
+    def abstract_digit(self, text):
         import chinese2digits as c2d
-        return int(c2d.takeNumberFromString(text)['digitsStringList'][0])
+        try:
+            num = int(c2d.takeNumberFromString(text)['digitsStringList'][0])
+        except IndexError:
+            self.speech('警告：未检测到数字')
+            return -1
+        else:
+            return num
 
 
 if __name__ == "__main__":
