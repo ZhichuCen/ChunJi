@@ -28,3 +28,8 @@
 [2022-08-16 20:31:10,126] - [ERROR] - [Error occurs in POST, the client will retry 5 times. Error message is HTTPSConnectionPool(host='sis-ext.cn-east-3.myhuaweicloud.com', port=443): Max retries exceeded with url: /v1/a7b20cfec1f948dbb4a9d145456b21d7/tts (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x112614d60>: Failed to establish a new connection: [Errno 8] nodename nor servname provided, or not known'))]
 [2022-08-16 20:31:10,127] - [ERROR] - [POST Response is empety, url is https://sis-ext.cn-east-3.myhuaweicloud.com/v1/a7b20cfec1f948dbb4a9d145456b21d7/tts]
 [2022-08-16 20:32:27,594] - [ERROR] - [Error occurs in POST, the client will retry 5 times. Error message is ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))]
+[2022-08-16 22:56:14,632] - [ERROR] - [{"error_code": "SIS.0032", "error_msg": "textmust not be blank;"}]
+[2022-08-17 22:35:55,955] - [ERROR] - [Error occurs in POST, the client will retry 5 times. Error message is ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))]
+[2022-08-17 22:36:30,776] - [ERROR] - [Error occurs in POST, the client will retry 5 times. Error message is ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))]
+[2022-08-18 22:43:25,660] - [ERROR] - [Error occurs in POST, the client will retry 5 times. Error message is ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))]
+[2022-08-18 22:46:56,762] - [ERROR] - [Error occurs in POST, the client will retry 5 times. Error message is ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))]
