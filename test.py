@@ -265,4 +265,12 @@ with open('文档.txt', 'r') as f:
 result_text = '查找乡愁'
 pattern = r'[查找搜索\s]'
 obj = re.sub(pattern, '', result_text)
-print(obj)
+print(obj,'\a')
+
+
+print('\a')
+import os
+print(os.path.splitext('文档1.txt'))
+
+data = ''
+print(data['str'])

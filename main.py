@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import json
 import os
 import re
 import sys
 import wave
 
 import keyboard
+import numpy as np
 import pyaudio
 
 from playsound import playsound
@@ -31,11 +33,9 @@ PUNC = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号', '：':
         '...': '省略号', '.': '点', '"': '双引号', "'": '单引号'}
 
 
-# GEN_PUNC = {'。': '句号'}
-
-
 class ChunJi:
     def __init__(self):
+        self.find_result = []
         self.last_undo = ""
         self.can_redo = False
         self.unconfirmed_name = ""
@@ -52,14 +52,27 @@ class ChunJi:
         # self.saved = True
         self.previous_saved = ""
         self.log = []
+
+        # noinspection PyBroadException
+        try:
+            with open('userconfig.json', 'r') as f:
+                userconfig = json.load(f)
+            self.listen_mode = userconfig['listen_mode']
+
+        except:
+            self.listen_mode = 1
+            userconfig = {'listen_mode': self.listen_mode}
+            with open('userconfig.json', 'w') as f:
+                json.dump(userconfig, f)
+
         # keyboard.add_hotkey("alt", self.on_alt_press)
         keyboard.add_hotkey("space", self.on_space_press)
 
         self.welcome()
 
     def welcome(self):
-        self.speech("欢迎使用唇记,请先打开或新建文件")
         self.no_file()
+        self.speech("欢迎使用唇记,请先打开或新建文件")
 
     # def on_space_press(self):
     #     self.audio_record("space")
@@ -71,15 +84,19 @@ class ChunJi:
     #     print(self.result_text)
 
     def on_space_press(self):
-        self.audio_record("space")
+        if self.listen_mode == 1:
+            self.audio_record("space")
+            self.response_audio()
+
+    def response_audio(self):
         self.result = eval(sasr())
         self.result_text = self.result["result"]["text"]
         print(self.result_text)
         if self.result["result"]["score"] < 0.5:
-            self.speech("准确率低，建议检查")
             print(self.result["result"]["score"])
-        elif self.pending:
+            self.speech("准确率低，建议检查")
 
+        elif self.pending:
             if self.pending == "打开或新建":
                 self.response_file()
 
@@ -94,6 +111,9 @@ class ChunJi:
 
             elif self.pending == '朗读选择':
                 self.insta_read_method()
+
+            elif self.pending == '选择查找':
+                self.choose_find()
 
             # elif self.pending == '移动光标':
             #     self.move_cursor_to()
@@ -152,8 +172,16 @@ class ChunJi:
         elif self.result_text in ["保存", '存储']:
             self.save_file()
 
-        elif self.result_text in ['退出', '关闭']:
+        elif '关闭' in self.result_text:
+            self.close()
+
+        elif '退出' in self.result_text:
             self.exit()
+
+        elif '键盘' in self.result_text:
+            self.keyboard_method()
+        elif '智能' in self.result_text:
+            self.smart_method()
 
         else:
             self.speech('无效命令')
@@ -179,13 +207,41 @@ class ChunJi:
             self.cursor += len(self.result_text)
             self.text = left + self.result_text + right
             # self.saved = False
+            if self.listen_mode == 2:
+                self.smart_record()
             print(self.text)
+
+    def keyboard_method(self):
+        self.listen_mode = 1
+        userconfig = {'listen_mode': self.listen_mode}
+        with open('userconfig.json', 'w') as f:
+            json.dump(userconfig, f)
+        self.speech('已切换至键盘模式')
+
+    def smart_method(self):
+        self.listen_mode = 2
+        userconfig = {'listen_mode': self.listen_mode}
+        with open('userconfig.json', 'w') as f:
+            json.dump(userconfig, f)
+        self.speech('已切换至智能模式')
 
     def find_method(self):
         pattern = r'[查找搜索\s]'
         obj = re.sub(pattern, '', self.result_text)
-        find_result = self.find_text(obj)
+        self.find_result = self.find_text(obj)
+        if len(self.find_result) == 0:
+            self.speech('未找到%s' % obj)
+        else:
+            self.pending = '选择查找'
+            self.speech('查找%s，一共找到%d个结果，请选择要前往第几个' % (obj, len(self.find_result)))
 
+    def choose_find(self):
+        num = self.abstract_digit(self.result_text)
+        if num != -1:
+            self.log.append((self.text, self.cursor))
+            self.cursor = self.find_result[num - 1]
+            self.pending = ""
+            self.speech('已移动到第%d个结果后' % num)
 
     def find_text(self, obj):
         find_result = [0]
@@ -302,8 +358,8 @@ class ChunJi:
             self.speech('无法重做')
 
     def read_aloud_method(self):
-        self.speech('请选择要朗读的内容')
         self.pending = '朗读选择'
+        self.speech('请选择要朗读的内容')
 
     def insta_read_method(self):
         if ('全文' in self.result_text) or ('所有' in self.result_text) or ('全' in self.result_text):
@@ -342,23 +398,26 @@ class ChunJi:
             self.speech('无法检测内容')
 
     def check_content(self, content):
-        self.speech('AI检查中')
+        if self.listen_mode == 1:
+            self.speech('AI检查中')
         import pycorrector
         corrected_sent, detail = pycorrector.correct(content)
         print(corrected_sent, detail)
         if len(detail) == 0:
             self.speech('无智能纠错内容')
         else:
-            self.speech('检测出' + str(len(detail)) + '个错误', block=True)
+            speech_text = ''
+            speech_text += '检测出' + str(len(detail)) + '个错误'
             t = 1
             for i in detail:
-                self.speech('第' + str(t) + '个错误：' + i[0] + '应为' + i[1], block=True)
+                speech_text += '第' + str(t) + '个错误：' + i[0] + '应为' + i[1]
                 t += 1
             # self.speech('请选择要改正的错误')
             # self.pending = '选择纠错'
-            self.speech('已纠错')
             self.log.append((self.text, self.cursor))
             self.text = corrected_sent
+            speech_text += '已纠错'
+            self.speech(speech_text)
 
     # def select_read_method(self):
     #
@@ -378,18 +437,29 @@ class ChunJi:
 
     def read_content(self, content):
         self.pending = ''
+        if '无标点' in self.result_text:
+            if content == '全文':
+                self.speech(self.text)
+            elif content == '上一句':
+                self.speech(self.selector('上一句'))
+            elif content == '下一句':
+                self.speech(self.selector('下一句'))
+            elif content == '上一段':
+                self.speech(self.selector('上一段'))
+            elif content == '下一段':
+                self.speech(self.selector('下一段'))
 
-        if content == '全文':
-            self.speech(self.text, read_punc=True)
-
-        elif content == '上一句':
-            self.speech(self.selector('上一句'), read_punc=True)
-        elif content == '下一句':
-            self.speech(self.selector('下一句'), read_punc=True)
-        elif content == '上一段':
-            self.speech(self.selector('上一段'), read_punc=True)
-        elif content == '下一段':
-            self.speech(self.selector('下一段'), read_punc=True)
+        else:
+            if content == '全文':
+                self.speech(self.text, read_punc=True)
+            elif content == '上一句':
+                self.speech(self.selector('上一句'), read_punc=True)
+            elif content == '下一句':
+                self.speech(self.selector('下一句'), read_punc=True)
+            elif content == '上一段':
+                self.speech(self.selector('上一段'), read_punc=True)
+            elif content == '下一段':
+                self.speech(self.selector('下一段'), read_punc=True)
 
     def delete_method(self):
         temp_cursor = self.cursor
@@ -399,10 +469,11 @@ class ChunJi:
                 temp_cursor -= self.abstract_digit(self.result_text)
                 if temp_cursor < 0:
                     temp_cursor = 0
+                    self.del_area(temp_cursor, self.cursor)
                     self.speech('警告：超出文件范围，删除至文档开头')
                 else:
+                    self.del_area(temp_cursor, self.cursor)
                     self.speech('已删除前' + str(self.abstract_digit(self.result_text)) + '字')
-                self.del_area(temp_cursor, self.cursor)
 
         elif ('后' in self.result_text or '下' in self.result_text) and ('字' in self.result_text):
             if self.abstract_digit(self.result_text) != -1:
@@ -410,10 +481,12 @@ class ChunJi:
                 temp_cursor += self.abstract_digit(self.result_text)
                 if temp_cursor > len(self.text):
                     temp_cursor = len(self.text)
+                    self.del_area(temp_cursor, self.cursor)
                     self.speech('警告：超出文件范围，删除至文档末尾')
                 else:
+                    self.del_area(temp_cursor, self.cursor)
                     self.speech('已删除后' + str(self.abstract_digit(self.result_text)) + '字')
-                self.del_area(temp_cursor, self.cursor)
+
 
         elif ('前' in self.result_text or '上' in self.result_text or '首' in self.result_text) and (
                 '句' in self.result_text):
@@ -423,10 +496,12 @@ class ChunJi:
                     temp_cursor -= 1
                 while not self.text[temp_cursor - 1] in PUNC.keys():
                     temp_cursor -= 1
+                self.del_area(temp_cursor, self.cursor)
                 self.speech('已删除前一句')
             else:
+                self.del_area(temp_cursor, self.cursor)
                 self.speech('光标在文档开头')
-            self.del_area(temp_cursor, self.cursor)
+
 
         elif (
                 '后' in self.result_text or '下' in self.result_text or '末' in self.result_text or
@@ -437,10 +512,12 @@ class ChunJi:
                     temp_cursor += 1
                 while not self.text[temp_cursor - 1] in PUNC.keys():
                     temp_cursor += 1
+                self.del_area(temp_cursor, self.cursor)
                 self.speech('已删除后一句')
             else:
+                self.del_area(temp_cursor, self.cursor)
                 self.speech('光标在文档末尾')
-            self.del_area(temp_cursor, self.cursor)
+
 
         elif ('前' in self.result_text or '上' in self.result_text or '首' in self.result_text) and (
                 '段' in self.result_text):
@@ -450,10 +527,12 @@ class ChunJi:
                     temp_cursor -= 1
                 while not self.text[temp_cursor - 1] == '\n':
                     temp_cursor -= 1
+                self.del_area(temp_cursor, self.cursor)
                 self.speech('已删除前一段')
             else:
+                self.del_area(temp_cursor, self.cursor)
                 self.speech('光标在文档开头')
-            self.del_area(temp_cursor, self.cursor)
+
 
         elif (
                 '后' in self.result_text or '下' in self.result_text or '末' in self.result_text
@@ -464,10 +543,13 @@ class ChunJi:
                     temp_cursor += 1
                 while not self.text[temp_cursor - 1] == '\n':
                     temp_cursor += 1
+                self.del_area(temp_cursor, self.cursor)
                 self.speech('已删除后一段')
             else:
+                self.del_area(temp_cursor, self.cursor)
                 self.speech('光标已在文档末尾')
-            self.del_area(temp_cursor, self.cursor)
+        else:
+            self.speech('错误：无法识别删除内容')
 
     def del_area(self, start, end):
         if start > end:
@@ -525,11 +607,40 @@ class ChunJi:
         self.speech('保存成功')
 
     def exit(self):
-        if self.text != self.previous_saved:
-            self.speech('警告：当前文件未保存')
+        if (self.text != self.previous_saved) and (not ('强制' in self.result_text)):
+            self.speech('警告：当前文件未保存,使用强制退出以放弃更改')
         else:
-            self.speech('欢迎下次使用', block=True)
+            if self.listen_mode == 1:
+                self.speech('欢迎下次使用', block=True)
             sys.exit()
+
+    def close(self):
+        if (self.text != self.previous_saved) and (not ('强制' in self.result_text)):
+            self.speech('警告：当前文件未保存,使用强制关闭以放弃更改')
+        else:
+            # self.listen_method = 1
+            self.find_result = []
+            self.last_undo = ""
+            self.can_redo = False
+            self.unconfirmed_name = ""
+            self.open_list = []
+            self.read_file_tts = ""
+            self.result_text = ""
+            self.result = {}
+            self.cursor = 0
+            self.mode = "Command"
+            self.have_file = False
+            self.pending = ""
+            self.text = ""
+            self.name = ""
+            # self.saved = True
+            self.previous_saved = ""
+            self.log = []
+
+            # self.__init__()
+
+            self.pending = "打开或新建"
+            self.speech('已关闭，请打开或新建文件')
 
     def response_file(self):
         if "打开" in self.result_text:
@@ -544,13 +655,13 @@ class ChunJi:
             self.speech("错误，请选择打开或新建")
 
     def new_file(self):
-        self.speech("请命名")
         self.pending = "命名"
+        self.speech("请命名")
 
     def new_name(self):
         self.unconfirmed_name = self.result_text + ".txt"
-        self.speech("将命名为：" + self.unconfirmed_name + "。确认请说：'是'", filename=True)
         self.pending = "命名确认"
+        self.speech("将命名为：" + self.unconfirmed_name + "。确认请说：'是'", filename=True)
 
     def confirm_name(self):
         if self.result_text in ['是', '确认', '是的']:
@@ -561,8 +672,8 @@ class ChunJi:
             # self.saved = False
             self.speech("新建成功。当前模式：控制")
         else:
-            self.speech('请重新说出文件名')
             self.pending = "命名"
+            self.speech('请重新说出文件名')
 
     def no_file(self):
         self.pending = "打开或新建"
@@ -578,9 +689,9 @@ class ChunJi:
             self.speech("当前目录下无txt文件")
         else:
             self.read_file_tts += "请说出文件对应的数字"
-            self.speech(self.read_file_tts, filename=True)
             self.pending = "选文件"
             print(self.open_list)
+            self.speech(self.read_file_tts, filename=True)
 
     def choose_file(self):
         # try:
@@ -605,49 +716,136 @@ class ChunJi:
                 self.log.append((self.text, self.cursor))
                 self.speech('已打开文件:' + self.name + '。当前模式：控制', filename=True)
 
-    @staticmethod
-    def audio_record(key):
-        CHUNK = 1024
-        FORMAT = pyaudio.paInt16  # 16bit编码格式
-        CHANNELS = 1  # 单声道
-        RATE = 16000  # 16000采样频率
+    def smart_record(self):
+        playsound(os.path.join('bin', 'beep.wav'))
+        if self.listen_mode == 2:
+            CHUNK = 4096
+            FORMAT = pyaudio.paInt16  # 16bit编码格式
+            CHANNELS = 1  # 单声道
+            RATE = 16000  # 16000采样频率
 
-        p = pyaudio.PyAudio()
-        # 创建音频流
-        stream = p.open(format=FORMAT,  # 音频流wav格式
-                        channels=CHANNELS,  # 单声道
-                        rate=RATE,  # 采样率16000
-                        input=True,
-                        frames_per_buffer=CHUNK)
+            VOLUME_THRESHOLD = 1000
+            MAX_SILENCE_CHUNK = 1
 
-        print("开始录制...")
+            p = pyaudio.PyAudio()
+            # 创建音频流
+            stream = p.open(format=FORMAT,  # 音频流wav格式
+                            channels=CHANNELS,  # 单声道
+                            rate=RATE,  # 采样率16000
+                            input=True,
+                            frames_per_buffer=CHUNK)
 
-        frames = []  # 录制的音频流
-        # 录制音频数据
-        while True:
-            if keyboard.is_pressed(key):
-                data = stream.read(CHUNK)
-                frames.append(data)
-            else:
-                break
+            print("开始录制...")
 
-        # 录制完成
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
+            frames = []  # 录制的音频流
 
-        print("录制完成...")
+            startRec = False
+            silentChunk = 0
 
-        # 保存音频文件
-        wf = wave.open("audio.pcm", "wb")
-        wf.setnchannels(CHANNELS)
-        wf.setsampwidth(p.get_sample_size(FORMAT))
-        wf.setframerate(RATE)
-        wf.writeframes(b"".join(frames))
-        wf.close()
+            while True:
+                try:
+                    data = stream.read(CHUNK)
+                except Exception as e:
+                    print('error')
+                    print(e)
+                    continue
+                npdata = np.frombuffer(data, dtype=np.short)
+                if max(npdata) > VOLUME_THRESHOLD:
+                    startRec = True
+                    silentChunk = 0
+                    # print("**recording**")
+                    frames.append(data)
+                elif startRec:
+                    silentChunk += 1
+                    # print('...')
+                    if silentChunk < 2:
+                        frames.append(data)
+                    elif silentChunk >= 2 + MAX_SILENCE_CHUNK:
+                        frames.append(data)
+                        break
 
-    @staticmethod
-    def speech(text, block=False, filename=False, read_punc=False):
+                startBuffer = []
+                # if max(npdata) > VOLUME_THRESHOLD:
+                #     if not startRec:
+                #         # print("**recording**")
+                #         # print('**',max(npdata),'**')
+                #         startBuffer.append(data)
+                #         if len(startBuffer) > 1:
+                #             startRec = True
+                #             frames += startBuffer
+                #             startBuffer = []
+                #     else:
+                #         silentChunk = 0
+                #         # print("**recording**")
+                #         frames.append(data)
+                # elif startRec:
+                #     silentChunk += 1
+                #     # print('...')
+                #     if silentChunk < 2:
+                #         frames.append(data)
+                #     elif silentChunk >= 2 + MAX_SILENCE_CHUNK:
+                #         frames.append(data)
+                #         break
+
+            # 录制完成
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
+
+            print("录制完成...")
+
+            # 保存音频文件
+            wf = wave.open("audio.pcm", "wb")
+            wf.setnchannels(CHANNELS)
+            wf.setsampwidth(p.get_sample_size(FORMAT))
+            wf.setframerate(RATE)
+            wf.writeframes(b"".join(frames))
+            wf.close()
+
+            self.response_audio()
+
+    def audio_record(self, key):
+        if self.listen_mode == 1:
+            CHUNK = 1024
+            FORMAT = pyaudio.paInt16  # 16bit编码格式
+            CHANNELS = 1  # 单声道
+            RATE = 16000  # 16000采样频率
+
+            p = pyaudio.PyAudio()
+            # 创建音频流
+            stream = p.open(format=FORMAT,  # 音频流wav格式
+                            channels=CHANNELS,  # 单声道
+                            rate=RATE,  # 采样率16000
+                            input=True,
+                            frames_per_buffer=CHUNK)
+
+            print("开始录制...")
+
+            frames = []  # 录制的音频流
+            # 录制音频数据
+            while True:
+                if keyboard.is_pressed(key):
+                    data = stream.read(CHUNK)
+                    frames.append(data)
+                else:
+                    break
+
+            # 录制完成
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
+
+            print("录制完成...")
+
+            # 保存音频文件
+            wf = wave.open("audio.pcm", "wb")
+            wf.setnchannels(CHANNELS)
+            wf.setsampwidth(p.get_sample_size(FORMAT))
+            wf.setframerate(RATE)
+            wf.writeframes(b"".join(frames))
+            wf.close()
+
+    def speech(self, text, block=False, filename=False, read_punc=False):
         if filename:
             if "." in text:
                 text = text.replace(".", "点")
@@ -660,10 +858,16 @@ class ChunJi:
 
         print(text)
         tts(text)
-        playsound("tts.wav", block=block)
+        if self.listen_mode == 1:
+            playsound("tts.wav", block=block)
+        elif self.listen_mode == 2:
+            playsound("tts.wav", block=True)
+            self.smart_record()
 
     def abstract_digit(self, text):
         import chinese2digits as c2d
+        text = text.replace('啊', '二')
+        text = text.replace('两', '二')
         try:
             num = int(c2d.takeNumberFromString(text)['digitsStringList'][0])
         except IndexError:
