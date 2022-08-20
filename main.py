@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import os
+import platform
 import re
 import sys
 import wave
@@ -8,8 +9,6 @@ import wave
 import keyboard
 import numpy as np
 import pyaudio
-
-from playsound import playsound
 
 from sasr import sasr
 from tts import tts
@@ -52,6 +51,8 @@ class ChunJi:
         # self.saved = True
         self.previous_saved = ""
         self.log = []
+        self.play_mode = 1
+        self.judge_play()
 
         # noinspection PyBroadException
         try:
@@ -69,6 +70,17 @@ class ChunJi:
         keyboard.add_hotkey("space", self.on_space_press)
 
         self.welcome()
+
+    def judge_play(self):
+        if platform.system() == 'Darwin':
+            try:
+                from playsound import playsound
+            except ImportError:
+                self.play_mode = 1
+            else:
+                self.play_mode = 2
+        else:
+            self.play_mode = 1
 
     def welcome(self):
         self.no_file()
@@ -717,7 +729,7 @@ class ChunJi:
                 self.speech('已打开文件:' + self.name + '。当前模式：控制', filename=True)
 
     def smart_record(self):
-        playsound(os.path.join('bin', 'beep.wav'))
+        self.play_audio(os.path.join('bin', 'beep.wav'))
         if self.listen_mode == 2:
             CHUNK = 4096
             FORMAT = pyaudio.paInt16  # 16bit编码格式
@@ -859,10 +871,42 @@ class ChunJi:
         print(text)
         tts(text)
         if self.listen_mode == 1:
-            playsound("tts.wav", block=block)
+            self.play_audio("tts.wav", block=block)
         elif self.listen_mode == 2:
-            playsound("tts.wav", block=True)
+            self.play_audio("tts.wav", block=True)
             self.smart_record()
+
+    def play_audio(self, path, block=False):
+        if self.play_mode == 1:
+            # define stream chunk
+            chunk = 1024
+
+            # open a wav format music
+            f = wave.open(path, "rb")
+            # instantiate PyAudio
+            p = pyaudio.PyAudio()
+            # open stream
+            stream = p.open(format=p.get_format_from_width(f.getsampwidth()),
+                            channels=f.getnchannels(),
+                            rate=f.getframerate(),
+                            output=True)
+            # read data
+            data = f.readframes(chunk)
+
+            # play stream
+            while data:
+                stream.write(data)
+                data = f.readframes(chunk)
+
+                # stop stream
+            stream.stop_stream()
+            stream.close()
+
+            # close PyAudio
+            p.terminate()
+        elif self.play_mode == 2:
+            from playsound import playsound
+            playsound(path, block=block)
 
     def abstract_digit(self, text):
         import chinese2digits as c2d
