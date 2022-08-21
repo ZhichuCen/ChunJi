@@ -1,3 +1,4 @@
 *.pcm
 *.wav
 /.pycorrector/datasets/zh_giga.no_cna_cmn.prune01244.klm
+/venv-mac/
