@@ -32,6 +32,14 @@ PUNC = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号', '：':
         '...': '省略号', '.': '点', '"': '双引号', "'": '单引号'}
 
 
+def resource_path(relative_path):
+    if getattr(sys, 'frozen', False):  # 是否Bundle Resource
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+
 class ChunJi:
     def __init__(self):
         self.find_result = []
@@ -499,7 +507,6 @@ class ChunJi:
                     self.del_area(temp_cursor, self.cursor)
                     self.speech('已删除后' + str(self.abstract_digit(self.result_text)) + '字')
 
-
         elif ('前' in self.result_text or '上' in self.result_text or '首' in self.result_text) and (
                 '句' in self.result_text):
             if temp_cursor != 0:
@@ -513,7 +520,6 @@ class ChunJi:
             else:
                 self.del_area(temp_cursor, self.cursor)
                 self.speech('光标在文档开头')
-
 
         elif (
                 '后' in self.result_text or '下' in self.result_text or '末' in self.result_text or
@@ -530,7 +536,6 @@ class ChunJi:
                 self.del_area(temp_cursor, self.cursor)
                 self.speech('光标在文档末尾')
 
-
         elif ('前' in self.result_text or '上' in self.result_text or '首' in self.result_text) and (
                 '段' in self.result_text):
             if temp_cursor != 0:
@@ -544,7 +549,6 @@ class ChunJi:
             else:
                 self.del_area(temp_cursor, self.cursor)
                 self.speech('光标在文档开头')
-
 
         elif (
                 '后' in self.result_text or '下' in self.result_text or '末' in self.result_text
@@ -729,7 +733,7 @@ class ChunJi:
                 self.speech('已打开文件:' + self.name + '。当前模式：控制', filename=True)
 
     def smart_record(self):
-        self.play_audio(os.path.join('bin', 'beep.wav'))
+        self.play_audio(resource_path(os.path.join('bin', 'beep.wav')))
         if self.listen_mode == 2:
             CHUNK = 4096
             FORMAT = pyaudio.paInt16  # 16bit编码格式
@@ -776,7 +780,7 @@ class ChunJi:
                         frames.append(data)
                         break
 
-                startBuffer = []
+                # startBuffer = []
                 # if max(npdata) > VOLUME_THRESHOLD:
                 #     if not startRec:
                 #         # print("**recording**")
