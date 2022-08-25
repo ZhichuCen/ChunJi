@@ -3,5 +3,5 @@
 A text editor with Chinese voice control, using Huawei Speech Interaction Service SDK  <br>
 [![OSCS Status](https://www.oscs1024.com/platform/badge/ZhichuCen/ChunJi.svg?size=small)](https://www.oscs1024.com/project/ZhichuCen/ChunJi?ref=badge_small)
 
-## 右侧Release中有编译好的可执行文件，下载后可直接运行
+## 右侧Releases中有编译好的可执行文件，下载后可直接运行
 ## 操作说明：本程序模式类似vim,但全由语音控制。按住空格程序开始录音，松开结束。具体关键字可在代码中查看，待开发完全后会推出关键字表
