@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-
-from huaweicloud_sis.client.asr_client import AsrCustomizationClient
-from huaweicloud_sis.bean.asr_request import AsrCustomShortRequest
-from huaweicloud_sis.exception.exceptions import ClientException
-from huaweicloud_sis.exception.exceptions import ServerException
-from huaweicloud_sis.utils import io_utils
-from huaweicloud_sis.bean.sis_config import SisConfig
 import json
+import os
+import sys
+
+from huaweicloud_sis.bean.asr_request import AsrCustomShortRequest
+from huaweicloud_sis.bean.sis_config import SisConfig
+from huaweicloud_sis.client.asr_client import AsrCustomizationClient
+from huaweicloud_sis.utils import io_utils
 
 # 鉴权参数
 # 鉴权信息
@@ -15,10 +15,21 @@ sk = 'Wpg1k1iQ2o9nPGEl0q1eq1DpMugQh7s0jcSKjJv3'  # 用户的sk
 region = 'cn-east-3'  # region，如cn-north-4
 project_id = 'a7b20cfec1f948dbb4a9d145456b21d7'  # 同region一一对应，参考https://support.huaweicloud.com/api-sis/sis_03_0008.html
 
+
+def resource_path(relative_path):
+    if getattr(sys, 'frozen', False):  # 是否Bundle Resource
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+
+AUDIO_PATH = resource_path('audio.pcm')
+
 # 一句话识别参数
-path = 'audio.pcm'  # 需要发送音频路径，如D:/test.pcm, 同时sdk也支持byte流发送数据。
-path_audio_format = 'pcm16k16bit'   # 音频支持格式，如pcm16k16bit，详见api文档
-path_property = 'chinese_16k_common'       # 属性字符串，language_sampleRate_domain, 如chinese_16k_common, 采样率要和音频一致。详见api文档
+path = AUDIO_PATH  # 需要发送音频路径，如D:/test.pcm, 同时sdk也支持byte流发送数据。
+path_audio_format = 'pcm16k16bit'  # 音频支持格式，如pcm16k16bit，详见api文档
+path_property = 'chinese_16k_common'  # 属性字符串，language_sampleRate_domain, 如chinese_16k_common, 采样率要和音频一致。详见api文档
 
 """
     todo 请正确填写音频格式和模型属性字符串
@@ -31,6 +42,7 @@ path_property = 'chinese_16k_common'       # 属性字符串，language_sampleRa
          例如格式选择pcm16k16bit，属性字符串却选择chinese_8k_common, 则会返回'audio_format' is not match model
          例如wav本身是16k采样率，属性选择chinese_8k_common, 同样会返回'audio_format' is not match model
 """
+
 
 # # 一句话识别参数，以音频文件的base64编码传入，1min以内音频
 # path = ''  								# 文件位置, 需要具体到文件，如D:/test.wav
@@ -64,7 +76,6 @@ def sasr():
     # step3 发送请求，返回结果,返回结果为json格式
     result = asr_client.get_short_response(asr_request)
     return json.dumps(result, indent=2, ensure_ascii=False)
-
 
 # if __name__ == '__main__':
 #     try:

@@ -1,11 +1,21 @@
 # -*- coding: utf-8 -*-
+import os
+import sys
 
-from huaweicloud_sis.client.tts_client import TtsCustomizationClient
-from huaweicloud_sis.bean.tts_request import TtsCustomRequest
 from huaweicloud_sis.bean.sis_config import SisConfig
-from huaweicloud_sis.exception.exceptions import ClientException
-from huaweicloud_sis.exception.exceptions import ServerException
-import json
+from huaweicloud_sis.bean.tts_request import TtsCustomRequest
+from huaweicloud_sis.client.tts_client import TtsCustomizationClient
+
+
+def resource_path(relative_path):
+    if getattr(sys, 'frozen', False):  # 是否Bundle Resource
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+
+TTS_PATH = resource_path('tts.wav')
 
 
 def tts(text):
@@ -15,12 +25,12 @@ def tts(text):
     region = 'cn-east-3'  # region，如cn-north-4
     project_id = 'a7b20cfec1f948dbb4a9d145456b21d7'  # 同region一一对应，参考https://support.huaweicloud.com/api-sis/sis_03_0008.html
     # text = ''           # 待合成文本，不超过500字
-    path = 'tts.wav'           # 保存路径，如D:/test.wav。 可在设置中选择不保存本地
+    path = TTS_PATH  # 保存路径，如D:/test.wav。 可在设置中选择不保存本地
 
     # step1 初始化客户端
     config = SisConfig()
-    config.set_connect_timeout(10)       # 设置连接超时，单位s
-    config.set_read_timeout(10)          # 设置读取超时，单位s
+    config.set_connect_timeout(10)  # 设置连接超时，单位s
+    config.set_read_timeout(10)  # 设置读取超时，单位s
     # 设置代理，使用代理前一定要确保代理可用。 代理格式可为[host, port] 或 [host, port, username, password]
     # config.set_proxy(proxy)
     ttsc_client = TtsCustomizationClient(ak, sk, region, project_id, sis_config=config)
@@ -48,7 +58,6 @@ def tts(text):
     # step3 发送请求，返回结果。如果设置保存，可在指定路径里查看保存的音频。
     result = ttsc_client.get_ttsc_response(ttsc_request)
     # print(json.dumps(result, indent=2, ensure_ascii=False))
-
 
 # if __name__ == '__main__':
 #     try:

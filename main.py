@@ -40,6 +40,10 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+TTS_PATH = resource_path('tts.wav')
+AUDIO_PATH = resource_path('audio.pcm')
+
+
 class ChunJi:
     def __init__(self):
         self.find_result = []
@@ -811,7 +815,7 @@ class ChunJi:
             print("录制完成...")
 
             # 保存音频文件
-            wf = wave.open("audio.pcm", "wb")
+            wf = wave.open(AUDIO_PATH, "wb")
             wf.setnchannels(CHANNELS)
             wf.setsampwidth(p.get_sample_size(FORMAT))
             wf.setframerate(RATE)
@@ -854,7 +858,7 @@ class ChunJi:
             print("录制完成...")
 
             # 保存音频文件
-            wf = wave.open("audio.pcm", "wb")
+            wf = wave.open(AUDIO_PATH, "wb")
             wf.setnchannels(CHANNELS)
             wf.setsampwidth(p.get_sample_size(FORMAT))
             wf.setframerate(RATE)
@@ -875,9 +879,9 @@ class ChunJi:
         print(text)
         tts(text)
         if self.listen_mode == 1:
-            self.play_audio("tts.wav", block=block)
+            self.play_audio(TTS_PATH, block=block)
         elif self.listen_mode == 2:
-            self.play_audio("tts.wav", block=True)
+            self.play_audio(TTS_PATH, block=True)
             self.smart_record()
 
     def play_audio(self, path, block=False):
