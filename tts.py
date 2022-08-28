@@ -49,7 +49,7 @@ def tts(text):
     # 设置音高, [-500, 500], 默认0
     ttsc_request.set_pitch(0)
     # 设置音速, [-500, 500], 默认0
-    ttsc_request.set_speed(200)
+    ttsc_request.set_speed(400)
     # 设置是否保存，默认False
     ttsc_request.set_saved(True)
     # 设置保存路径，只有设置保存，此参数才生效
