@@ -149,7 +149,7 @@ class ChunJi:
                 self.insert_method()
 
     def command_method(self):
-        if self.result_text in ['打字', '输入', '键入']:
+        if self.result_text in ['打字', '输入', '键入', '收入']:
             if not self.have_file:
                 self.no_file()
             else:
