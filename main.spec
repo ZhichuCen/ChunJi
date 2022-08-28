@@ -8,7 +8,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('bin','bin')],
+    datas=[('bin','bin'),('venv/lib/python3.8/site-packages/jieba','jieba'),('venv/lib/python3.8/site-packages/pycorrector','pycorrector')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
