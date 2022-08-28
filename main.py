@@ -431,10 +431,10 @@ class ChunJi:
             self.speech('无智能纠错内容')
         else:
             speech_text = ''
-            speech_text += '检测出' + str(len(detail)) + '个错误'
+            speech_text += '检测出' + str(len(detail)) + '个错误,'
             t = 1
             for i in detail:
-                speech_text += '第' + str(t) + '个错误：' + i[0] + '应为' + i[1]
+                speech_text += '第' + str(t) + '个错误：' + i[0] + '应为' + i[1] + '。'
                 t += 1
             # self.speech('请选择要改正的错误')
             # self.pending = '选择纠错'
@@ -737,7 +737,7 @@ class ChunJi:
                 self.speech('已打开文件:' + self.name + '。当前模式：控制', filename=True)
 
     def smart_record(self):
-        self.play_audio(resource_path(os.path.join('bin', 'beep.wav')))
+        self.play_audio(resource_path(os.path.join('bin', 'beep.wav')), block=True)
         if self.listen_mode == 2:
             CHUNK = 4096
             FORMAT = pyaudio.paInt16  # 16bit编码格式
