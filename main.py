@@ -221,10 +221,10 @@ class ChunJi:
 
             if self.result_text in PUNC_FULL.values():
                 self.result_text = list(PUNC_FULL.keys())[list(PUNC_FULL.values()).index(self.result_text)]
-                self.speech('插入标点:' + PUNC[self.result_text])
+                self.speech('插入标点:' + PUNC[self.result_text], go_smart_record=False)
             elif self.result_text == '空格':
                 self.result_text = ' '
-                self.speech('插入空格')
+                self.speech('插入空格', go_smart_record=False)
 
             left = self.text[0:self.cursor]
             right = self.text[self.cursor:]
@@ -865,14 +865,14 @@ class ChunJi:
             wf.writeframes(b"".join(frames))
             wf.close()
 
-    def speech(self, text, block=False, filename=False, read_punc=False):
+    def speech(self, text, block=False, filename=False, read_punc=False, go_smart_record=True):
         if filename:
             if "." in text:
                 text = text.replace(".", "点")
 
         if read_punc:
             text = text.replace('    ', '空两格')
-            text = text.replace(' ', '空格')
+            text = text.replace(' ', ' 空格 ')
             for i in PUNC.keys():
                 text = text.replace(i, ' ' + PUNC[i] + ' ')
 
@@ -882,7 +882,8 @@ class ChunJi:
             self.play_audio(TTS_PATH, block=block)
         elif self.listen_mode == 2:
             self.play_audio(TTS_PATH, block=True)
-            self.smart_record()
+            if go_smart_record:
+                self.smart_record()
 
     def play_audio(self, path, block=False):
         if self.play_mode == 1:
