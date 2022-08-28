@@ -62,6 +62,7 @@ class ChunJi:
         self.name = ""
         # self.saved = True
         self.previous_saved = ""
+
         self.log = []
         self.play_mode = 1
         self.judge_play()
@@ -71,10 +72,14 @@ class ChunJi:
             with open('userconfig.json', 'r') as f:
                 userconfig = json.load(f)
             self.listen_mode = userconfig['listen_mode']
+            self.speed = userconfig['speed']
 
         except:
             self.listen_mode = 1
-            userconfig = {'listen_mode': self.listen_mode}
+            self.speed = 200
+            userconfig = {'listen_mode': self.listen_mode,
+                          'speed': self.speed
+                          }
             with open('userconfig.json', 'w') as f:
                 json.dump(userconfig, f)
 
@@ -207,6 +212,12 @@ class ChunJi:
         elif '智能' in self.result_text:
             self.smart_method()
 
+        elif '加速' in self.result_text:
+            self.change_speed(1)
+
+        elif '减速' in self.result_text:
+            self.change_speed(2)
+
         else:
             self.speech('无效命令')
 
@@ -235,18 +246,44 @@ class ChunJi:
                 self.smart_record()
             print(self.text)
 
-    def keyboard_method(self):
-        self.listen_mode = 1
-        userconfig = {'listen_mode': self.listen_mode}
+    def save_config(self):
+        userconfig = {'listen_mode': self.listen_mode,
+                      'speed': self.speed
+                      }
         with open('userconfig.json', 'w') as f:
             json.dump(userconfig, f)
+
+    def change_speed(self, up_or_down):
+        if up_or_down == 1:
+            self.speed += 100
+            if self.speed > 500:
+                self.speed = 500
+                self.save_config()
+                self.speech('已达到最大速度')
+            else:
+                self.save_config()
+                self.speech('已加速')
+
+        elif up_or_down == 2:
+            self.speed -= 100
+            if self.speed < -500:
+                self.speed = -500
+                self.save_config()
+                self.speech('已达到最小速度')
+            else:
+                self.save_config()
+                self.speech('已减速')
+
+
+
+    def keyboard_method(self):
+        self.listen_mode = 1
+        self.save_config()
         self.speech('已切换至键盘模式')
 
     def smart_method(self):
         self.listen_mode = 2
-        userconfig = {'listen_mode': self.listen_mode}
-        with open('userconfig.json', 'w') as f:
-            json.dump(userconfig, f)
+        self.save_config()
         self.speech('已切换至智能模式')
 
     def find_method(self):
@@ -877,7 +914,7 @@ class ChunJi:
                 text = text.replace(i, ' ' + PUNC[i] + ' ')
 
         print(text)
-        tts(text)
+        tts(text, speed=self.speed)
         if self.listen_mode == 1:
             self.play_audio(TTS_PATH, block=block)
         elif self.listen_mode == 2:

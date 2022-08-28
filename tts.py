@@ -18,7 +18,7 @@ def resource_path(relative_path):
 TTS_PATH = resource_path('tts.wav')
 
 
-def tts(text):
+def tts(text,speed):
     """ 语音合成demo """
     ak = 'ZENS2IKKSHRU0VTY27YQ'  # 用户的ak
     sk = 'Wpg1k1iQ2o9nPGEl0q1eq1DpMugQh7s0jcSKjJv3'  # 用户的sk
@@ -49,7 +49,7 @@ def tts(text):
     # 设置音高, [-500, 500], 默认0
     ttsc_request.set_pitch(0)
     # 设置音速, [-500, 500], 默认0
-    ttsc_request.set_speed(400)
+    ttsc_request.set_speed(speed)
     # 设置是否保存，默认False
     ttsc_request.set_saved(True)
     # 设置保存路径，只有设置保存，此参数才生效
