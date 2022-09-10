@@ -255,6 +255,8 @@ class ChunJi:
 
     def change_speed(self, up_or_down):
         if up_or_down == 1:
+            if '最大' in self.result_text:
+                self.speed = 500
             self.speed += 100
             if self.speed > 500:
                 self.speed = 500
