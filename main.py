@@ -196,7 +196,7 @@ class ChunJi:
         elif self.result_text in ['撤销', '撤回']:
             self.undo()
 
-        elif self.result_text in ['重做', '取消撤回', '还原']:
+        elif self.result_text in ['重做', '取消撤回', '还原', '恢复']:
             self.redo()
 
         elif self.result_text in ["保存", '存储']:
@@ -658,7 +658,7 @@ class ChunJi:
             return right
 
     def save_file(self):
-        with open(self.name, 'w') as f:
+        with open(self.name, 'w', encoding='utf-8') as f:
             f.write(self.text)
         # self.saved = True
         self.previous_saved = self.text
