@@ -9,6 +9,7 @@ import wave
 import keyboard
 import numpy as np
 import pyaudio
+from toBraille import toBraille
 
 from sasr import sasr
 from tts import tts
@@ -218,6 +219,9 @@ class ChunJi:
 
         elif '减速' in self.result_text:
             self.change_speed(2)
+
+        elif '打印' in self.result_text:
+            toBraille(self.text)
 
         else:
             self.speech('无效命令')
@@ -904,6 +908,8 @@ class ChunJi:
             wf.close()
 
     def speech(self, text, block=False, filename=False, read_punc=False, go_smart_record=True):
+        if text == '':
+            text = '无内容'
         if filename:
             if "." in text:
                 text = text.replace(".", "点")

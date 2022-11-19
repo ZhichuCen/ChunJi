@@ -2,3 +2,7 @@
 *.wav
 /.pycorrector/datasets/zh_giga.no_cna_cmn.prune01244.klm
 /venv-mac/
+/huaweicloud_sis.log
+/userconfig.json
+/huaweicloud_python_sdk_sis.egg-info/
+/huaweicloud-python-sdk-sis-1.8.0/
