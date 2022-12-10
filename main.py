@@ -120,40 +120,43 @@ class ChunJi:
             self.response_audio()
 
     def response_audio(self):
-        self.result = eval(sasr())
-        self.result_text = self.result["result"]["text"]
-        print(self.result_text)
-        if self.result["result"]["score"] < 0.5:
-            print(self.result["result"]["score"])
-            self.speech("准确率低，建议检查")
+        try:
+            self.result = eval(sasr())
+            self.result_text = self.result["result"]["text"]
+            print(self.result_text)
+            if self.result["result"]["score"] < 0.5:
+                print(self.result["result"]["score"])
+                self.speech("准确率低，建议检查")
 
-        elif self.pending:
-            if self.pending == "打开或新建":
-                self.response_file()
+            elif self.pending:
+                if self.pending == "打开或新建":
+                    self.response_file()
 
-            elif self.pending == "选文件":
-                self.choose_file()
+                elif self.pending == "选文件":
+                    self.choose_file()
 
-            elif self.pending == "命名":
-                self.new_name()
+                elif self.pending == "命名":
+                    self.new_name()
 
-            elif self.pending == "命名确认":
-                self.confirm_name()
+                elif self.pending == "命名确认":
+                    self.confirm_name()
 
-            elif self.pending == '朗读选择':
-                self.insta_read_method()
+                elif self.pending == '朗读选择':
+                    self.insta_read_method()
 
-            elif self.pending == '选择查找':
-                self.choose_find()
+                elif self.pending == '选择查找':
+                    self.choose_find()
 
-            # elif self.pending == '移动光标':
-            #     self.move_cursor_to()
+                # elif self.pending == '移动光标':
+                #     self.move_cursor_to()
 
-        else:
-            if self.mode == "Command":
-                self.command_method()
-            elif self.mode == "Insert":
-                self.insert_method()
+            else:
+                if self.mode == "Command":
+                    self.command_method()
+                elif self.mode == "Insert":
+                    self.insert_method()
+        except:
+            self.speech('错误，请重新操作')
 
     def command_method(self):
         if self.result_text in ['打字', '输入', '键入', '收入']:
@@ -329,7 +332,7 @@ class ChunJi:
                 self.cursor -= self.abstract_digit(self.result_text)
                 if self.cursor < 0:
                     self.cursor = 0
-                    self.speech('警告：超出文件范围，光标已移动至文档开头')
+                    self.speech('警告：超出文档范围，光标已移动至文档开头')
                 else:
                     self.speech('光标已前移' + str(self.abstract_digit(self.result_text)) + '字')
 
@@ -339,7 +342,7 @@ class ChunJi:
                 self.cursor += self.abstract_digit(self.result_text)
                 if self.cursor > len(self.text):
                     self.cursor = len(self.text)
-                    self.speech('警告：超出文件范围，光标已移动至文档末尾')
+                    self.speech('警告：超出文档范围，光标已移动至文档末尾')
                 else:
                     self.speech('光标已后移' + str(self.abstract_digit(self.result_text)) + '字')
 
@@ -536,7 +539,7 @@ class ChunJi:
                 if temp_cursor < 0:
                     temp_cursor = 0
                     self.del_area(temp_cursor, self.cursor)
-                    self.speech('警告：超出文件范围，删除至文档开头')
+                    self.speech('警告：超出文档范围，删除至文档开头')
                 else:
                     self.del_area(temp_cursor, self.cursor)
                     self.speech('已删除前' + str(self.abstract_digit(self.result_text)) + '字')
@@ -548,7 +551,7 @@ class ChunJi:
                 if temp_cursor > len(self.text):
                     temp_cursor = len(self.text)
                     self.del_area(temp_cursor, self.cursor)
-                    self.speech('警告：超出文件范围，删除至文档末尾')
+                    self.speech('警告：超出文档范围，删除至文档末尾')
                 else:
                     self.del_area(temp_cursor, self.cursor)
                     self.speech('已删除后' + str(self.abstract_digit(self.result_text)) + '字')
