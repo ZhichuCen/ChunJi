@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
 import pygame
 
@@ -12,7 +13,12 @@ import re
 url = 'http://www.braille.org.cn:8080/braille-web/braille/textToBraille.html'
 if (os.path.exists('mangwen.txt')):
     os.remove('mangwen.txt')
-
+def resource_path(relative_path):
+    if getattr(sys, 'frozen', False):  # 是否Bundle Resource
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 def toBraille(content):
     data = {}
@@ -68,7 +74,7 @@ def toBraille(content):
     print('对应的盲文是：%s' % (mangwen))
 
     pygame.init()
-    font = pygame.font.Font(os.path.join("bin/Apple Braille.ttf"), 35)
+    font = pygame.font.Font(resource_path(os.path.join('bin', 'Apple Braille.ttf')), 35)
     rtext = font.render(mangwen, True, (0, 0, 0), (255, 255, 255))
     pygame.image.save(rtext, "text.jpg")
 
