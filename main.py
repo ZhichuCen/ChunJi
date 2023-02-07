@@ -884,7 +884,7 @@ class ChunJi:
                             input=True,
                             frames_per_buffer=CHUNK)
 
-            print("开始录制...")
+            # print("开始录制...")
 
             frames = []  # 录制的音频流
             # 录制音频数据
@@ -900,7 +900,7 @@ class ChunJi:
             stream.close()
             p.terminate()
 
-            print("录制完成...")
+            # print("录制完成...")
 
             # 保存音频文件
             wf = wave.open(AUDIO_PATH, "wb")
@@ -923,7 +923,7 @@ class ChunJi:
             for i in PUNC.keys():
                 text = text.replace(i, ' ' + PUNC[i] + ' ')
 
-        print(text)
+        print("---"+text)
         tts(text, speed=self.speed)
         if self.listen_mode == 1:
             self.play_audio(TTS_PATH, block=block)
