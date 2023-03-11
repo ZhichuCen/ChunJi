@@ -199,6 +199,7 @@
 # b = a-b
 # a = a-b
 # print(a,b)
+import pyperclip
 
 # import pycorrector
 # print('ready')
@@ -276,9 +277,9 @@
 # print(data['str'])
 
 message_log = [
-        {"role": "system", "content": "You are a helpful assistant."},
-{"role": "ass", "content": "16532"}
-    ]
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "ass", "content": "16532"}
+]
 print(message_log[-1]["content"])
 
 PUNC = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号', '：': '冒号', '？': '问号', '！': '感叹号', '    ': '空两格',
@@ -289,8 +290,15 @@ PUNC = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号', '：':
         '...': '省略号', '.': '点', '"': '双引号', "'": '单引号'}
 
 import string
+
 s = "Hello,    world!。。？？——}{|、"
-allpunc = "".join(PUNC.keys())+string.punctuation
+allpunc = "".join(PUNC.keys()) + string.punctuation
 table = str.maketrans("", "", allpunc)
 s = s.translate(table)
-print(s) # Hello world
+print(s)  # Hello world
+
+try:
+    paste_content = pyperclip.paste()
+except:
+    no_paste = True
+print(paste_content)

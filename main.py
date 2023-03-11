@@ -272,7 +272,7 @@ class ChunJi:
             self.speech('和你聊天很高兴，再见', gpt_voice=True)
             self.message_log = []
             self.first_gpt = True
-            self.mode = "command"
+            self.mode = "Command"
         elif "修改" in self.result_text and "文章" in self.result_text and self.prevent_loop == False:
             self.prevent_loop = True
             self.result_text = "请帮我修改这篇文章，并直接回答修改后的文章：" + self.text
@@ -341,6 +341,7 @@ class ChunJi:
         if no_paste or not paste_content:
             self.speech('剪切板无内容')
         else:
+            # print(1)
             left = self.text[0:self.cursor]
             right = self.text[self.cursor:]
             self.cursor += len(paste_content)
