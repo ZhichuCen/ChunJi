@@ -50,7 +50,7 @@ path_property = 'chinese_16k_common'  # 属性字符串，language_sampleRate_do
 # path_property = 'chinese_16k_general'   # language_sampleRate_domain, 如chinese_16k_general，详见api文档
 
 
-def sasr():
+def sasr(detect_punc):
     """ 一句话识别示例 """
     # step1 初始化客户端
     config = SisConfig()
@@ -65,7 +65,10 @@ def sasr():
     asr_request = AsrCustomShortRequest(path_audio_format, path_property, data)
     # 所有参数均可不设置，使用默认值
     # 设置是否添加标点，yes or no，默认no
-    asr_request.set_add_punc('no')
+    if detect_punc:
+        asr_request.set_add_punc('yes')
+    else:
+        asr_request.set_add_punc('no')
     # 设置是否将语音中数字转写为阿拉伯数字，yes or no，默认yes
     asr_request.set_digit_norm('no')
     # 设置是否添加热词表id，没有则不填

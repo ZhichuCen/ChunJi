@@ -230,47 +230,67 @@
 #
 #
 # speech("欢迎使用唇记",block=True)
-import re
-
-with open('文档.txt', 'r') as f:
-    txt = f.read()
-
-
-# t = text.find('hhh')
-# print(t)
-# print(text[:t])
-# print(text[t:])
-
-
-# def find_text(obj, find_result=[], find_seq=0):
-#     t = text.find(obj)
-#     if t != -1:
-#         find_seq += (t + len(obj))
-#         find_result.append(find_seq)
-#         find_text(text[find_seq:], find_result=find_result, find_seq=find_seq)
-#     else:
-#         return find_result
-
-
-# def find_text(text, obj):
-#     find_result = [0]
-#     while text.find(obj) != -1:
-#         cur = text.find(obj) + len(obj) + find_result[-1]
-#         find_result.append(cur)
-#         text = txt[cur:]
-#     return find_result[1:]
+# import re
+#
+# with open('文档.txt', 'r') as f:
+#     txt = f.read()
 #
 #
-# print(find_text(txt, '乡'))
-result_text = '查找乡愁'
-pattern = r'[查找搜索\s]'
-obj = re.sub(pattern, '', result_text)
-print(obj,'\a')
+# # t = text.find('hhh')
+# # print(t)
+# # print(text[:t])
+# # print(text[t:])
+#
+#
+# # def find_text(obj, find_result=[], find_seq=0):
+# #     t = text.find(obj)
+# #     if t != -1:
+# #         find_seq += (t + len(obj))
+# #         find_result.append(find_seq)
+# #         find_text(text[find_seq:], find_result=find_result, find_seq=find_seq)
+# #     else:
+# #         return find_result
+#
+#
+# # def find_text(text, obj):
+# #     find_result = [0]
+# #     while text.find(obj) != -1:
+# #         cur = text.find(obj) + len(obj) + find_result[-1]
+# #         find_result.append(cur)
+# #         text = txt[cur:]
+# #     return find_result[1:]
+# #
+# #
+# # print(find_text(txt, '乡'))
+# result_text = '查找乡愁'
+# pattern = r'[查找搜索\s]'
+# obj = re.sub(pattern, '', result_text)
+# print(obj,'\a')
+#
+#
+# print('\a')
+# import os
+# print(os.path.splitext('文档1.txt'))
+#
+# data = ''
+# print(data['str'])
 
+message_log = [
+        {"role": "system", "content": "You are a helpful assistant."},
+{"role": "ass", "content": "16532"}
+    ]
+print(message_log[-1]["content"])
 
-print('\a')
-import os
-print(os.path.splitext('文档1.txt'))
+PUNC = {'。': '句号', '，': '逗号', '、': '顿号', ';': '分号', '：': '冒号', '？': '问号', '！': '感叹号', '    ': '空两格',
+        '“': '左引号', '”': '右引号', '\n': '回车', '（': '左括号', '）': '右括号', '——': '破折号', '—': '连接号',
+        '-': '减号',
+        '······': '省略号', '·': '间隔号', '《': '左书名号', '》': '右书名号',
+        '；': '分号', ',': '逗号', ':': '冒号', '?': '问号', '!': '感叹号', '(': '左括号', ')': '右括号',
+        '...': '省略号', '.': '点', '"': '双引号', "'": '单引号'}
 
-data = ''
-print(data['str'])
+import string
+s = "Hello,    world!。。？？——}{|、"
+allpunc = "".join(PUNC.keys())+string.punctuation
+table = str.maketrans("", "", allpunc)
+s = s.translate(table)
+print(s) # Hello world

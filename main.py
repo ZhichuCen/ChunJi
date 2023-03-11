@@ -3,6 +3,7 @@ import json
 import os
 import platform
 import re
+import string
 import sys
 import wave
 
@@ -51,7 +52,10 @@ AUDIO_PATH = resource_path('audio.pcm')
 
 class ChunJi:
     def __init__(self):
-        self.message_log = None
+        self.prevent_loop = False
+        self.result_text_with_punc = ""
+        self.detect_punc_in_insert = True
+        self.message_log = {}
         self.find_result = []
         self.last_undo = ""
         self.can_redo = False
@@ -124,10 +128,11 @@ class ChunJi:
             self.audio_record("space")
             self.response_audio()
 
-    def response_audio(self):
+    def response_audio(self, detect_punc=True):
         try:
-            self.result = eval(sasr())
-            self.result_text = self.result["result"]["text"]
+            self.result = eval(sasr(detect_punc))
+            self.result_text_with_punc = self.result["result"]["text"]
+            self.result_text = self.clear_punc(self.result_text_with_punc)
             print(self.result_text)
             if self.result["result"]["score"] < 0.5:
                 print(self.result["result"]["score"])
@@ -151,6 +156,8 @@ class ChunJi:
 
                 elif self.pending == '选择查找':
                     self.choose_find()
+                elif self.pending == "gpt_choose":
+                    self.gpt_choose()
 
                 # elif self.pending == '移动光标':
                 #     self.move_cursor_to()
@@ -162,7 +169,8 @@ class ChunJi:
                     self.insert_method()
                 elif self.mode == "AI":
                     self.ai_method()
-        except:
+        except Exception as e:
+            print(e)
             self.speech('错误，请重新操作')
 
     def command_method(self):
@@ -225,6 +233,9 @@ class ChunJi:
         elif '黏贴' in self.result_text:
             self.paste_func()
 
+        elif self.result_text == '标点':
+            self.switch_punc_detect()
+
         elif '人工智能' in self.result_text:
             self.gpt_switch()
 
@@ -250,14 +261,30 @@ class ChunJi:
         self.speech("你好，我是Chat GPT，请随意向我问问题", gpt_voice=True)
 
     def ai_method(self):
+
+        # if self.pending == "gpt_choose":
+        #     self.gpt_choose()
         if self.result_text == '功能':
-            pass
+            self.speech('请选择功能：1.修改文章 2.复制回答 3.询问剪切板', gpt_voice=True)
+            self.pending = "gpt_choose"
         elif self.result_text == '退出':
             self.speech('和你聊天很高兴，再见', gpt_voice=True)
             self.message_log = []
             self.first_gpt = True
             self.mode = "command"
+        elif "修改" in self.result_text and "文章" in self.result_text and self.prevent_loop == False:
+            self.prevent_loop = True
+            self.result_text = "请帮我修改这篇文章，并直接回答修改后的文章：" + self.text
+            self.speech('好的，我帮你修改文章', gpt_voice=True)
+            self.ai_method()
+            self.log.append((self.text, self.cursor))
+            self.text = self.message_log[-1]["content"]
+        elif ("剪切板" in self.result_text or "剪贴板" in self.result_text or "剪切版" in self.result_text) and self.prevent_loop == False:
+            self.prevent_loop = True
+            self.result_text = pyperclip.paste() + "请你描述这个内容"
+            self.ai_method()
         else:
+            self.prevent_loop = False
             if self.first_gpt:
                 self.message_log = [{"role": "system", "content": "You are a helpful assistant."},
                                     {"role": "user", "content": self.result_text}]
@@ -280,8 +307,30 @@ class ChunJi:
                 # Add the chatbot's response to the conversation history and print it to the console
                 self.message_log.append({"role": "assistant", "content": response})
                 self.speech(response, gpt_voice=True)
+        # print(self.message_log)
+
+    def gpt_choose(self):
+
+        if '一' in self.result_text:
+            self.result_text = "请帮我修改这篇文章，并直接回答修改后的文章：" + self.text
+            self.speech('好的，我帮你修改文章', gpt_voice=True)
+            self.ai_method()
+            self.log.append((self.text, self.cursor))
+            self.text = self.message_log[-1]["content"]
+
+        elif "二" in self.result_text:
+            pyperclip.copy(self.message_log[-1]["content"])
+            self.speech('已复制', gpt_voice=True)
+
+        elif "三" in self.result_text:
+
+            self.result_text = pyperclip.paste() + "请你描述这个内容"
+            self.ai_method()
+
+        self.pending = ""
 
     def paste_func(self):
+        self.log.append((self.text, self.cursor))
         no_paste = False
         paste_content = ''
         try:
@@ -319,6 +368,11 @@ class ChunJi:
         pyperclip.copy(copy_content)
         self.speech('已复制内容')
 
+    def clear_punc(self, content):
+        allpunc = "".join(PUNC.keys()) + string.punctuation
+        table = str.maketrans("", "", allpunc)
+        return content.translate(table)
+
     def insert_method(self):
         if self.result_text == "退出":
             self.mode = "Command"
@@ -335,6 +389,9 @@ class ChunJi:
                 self.result_text = ' '
                 self.speech('插入空格', go_smart_record=False)
 
+            if self.detect_punc_in_insert:
+                self.result_text = self.result_text_with_punc
+
             left = self.text[0:self.cursor]
             right = self.text[self.cursor:]
             self.cursor += len(self.result_text)
@@ -350,6 +407,14 @@ class ChunJi:
                       }
         with open('userconfig.json', 'w') as f:
             json.dump(userconfig, f)
+
+    def switch_punc_detect(self):
+        if not self.detect_punc_in_insert:
+            self.detect_punc_in_insert = True
+            self.speech('已切开启自动检测标点')
+        else:
+            self.detect_punc_in_insert = False
+            self.speech('已关闭自动检测标点')
 
     def change_speed(self, up_or_down):
         if up_or_down == 1:
