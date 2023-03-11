@@ -12,7 +12,7 @@ import numpy as np
 import pyaudio
 import pyperclip
 
-from toBraille import toBraille
+
 from gpt import send_message
 
 from sasr import sasr
@@ -251,6 +251,7 @@ class ChunJi:
             self.change_speed(2)
 
         elif '打印' in self.result_text:
+            from toBraille import toBraille
             toBraille(self.text)
 
         else:
