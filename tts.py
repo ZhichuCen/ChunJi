@@ -18,7 +18,7 @@ def resource_path(relative_path):
 TTS_PATH = resource_path('tts.wav')
 
 
-def tts(text,speed):
+def tts(text,speed,speaker):
     """ 语音合成demo """
     ak = 'ZENS2IKKSHRU0VTY27YQ'  # 用户的ak
     sk = 'Wpg1k1iQ2o9nPGEl0q1eq1DpMugQh7s0jcSKjJv3'  # 用户的sk
@@ -39,7 +39,7 @@ def tts(text,speed):
     ttsc_request = TtsCustomRequest(text)
     # 设置请求，所有参数均可不设置，使用默认参数
     # 设置属性字符串， language_speaker_domain, 默认chinese_xiaoyan_common, 参考api文档
-    ttsc_request.set_property('chinese_xiaoyu_common')
+    ttsc_request.set_property(speaker)
     # 设置音频格式，默认wav，可选mp3和pcm
     ttsc_request.set_audio_format('wav')
     # 设置采样率，8000 or 16000, 默认8000

@@ -9,7 +9,10 @@ import wave
 import keyboard
 import numpy as np
 import pyaudio
+import pyperclip
+
 from toBraille import toBraille
+from gpt import send_message
 
 from sasr import sasr
 from tts import tts
@@ -48,6 +51,7 @@ AUDIO_PATH = resource_path('audio.pcm')
 
 class ChunJi:
     def __init__(self):
+        self.message_log = None
         self.find_result = []
         self.last_undo = ""
         self.can_redo = False
@@ -68,6 +72,7 @@ class ChunJi:
         self.log = []
         self.play_mode = 1
         self.judge_play()
+        self.first_gpt = True
 
         # noinspection PyBroadException
         try:
@@ -155,6 +160,8 @@ class ChunJi:
                     self.command_method()
                 elif self.mode == "Insert":
                     self.insert_method()
+                elif self.mode == "AI":
+                    self.ai_method()
         except:
             self.speech('错误，请重新操作')
 
@@ -212,6 +219,15 @@ class ChunJi:
         elif '退出' in self.result_text:
             self.exit()
 
+        elif '复制' in self.result_text:
+            self.copy_func()
+
+        elif '黏贴' in self.result_text:
+            self.paste_func()
+
+        elif '人工智能' in self.result_text:
+            self.gpt_switch()
+
         elif '键盘' in self.result_text:
             self.keyboard_method()
         elif '智能' in self.result_text:
@@ -228,6 +244,80 @@ class ChunJi:
 
         else:
             self.speech('无效命令')
+
+    def gpt_switch(self):
+        self.mode = "AI"
+        self.speech("你好，我是Chat GPT，请随意向我问问题", gpt_voice=True)
+
+    def ai_method(self):
+        if self.result_text == '功能':
+            pass
+        elif self.result_text == '退出':
+            self.speech('和你聊天很高兴，再见', gpt_voice=True)
+            self.message_log = []
+            self.first_gpt = True
+            self.mode = "command"
+        else:
+            if self.first_gpt:
+                self.message_log = [{"role": "system", "content": "You are a helpful assistant."},
+                                    {"role": "user", "content": self.result_text}]
+
+                # Send the conversation history to the chatbot and get its response
+                response = send_message(self.message_log)
+
+                # Add the chatbot's response to the conversation history and print it to the console
+                self.message_log.append({"role": "assistant", "content": response})
+                self.speech(response, gpt_voice=True)
+
+                # Set the flag to False so that this branch is not executed again
+                self.first_gpt = False
+            else:
+                self.message_log.append({"role": "user", "content": self.result_text})
+
+                # Send the conversation history to the chatbot and get its response
+                response = send_message(self.message_log)
+
+                # Add the chatbot's response to the conversation history and print it to the console
+                self.message_log.append({"role": "assistant", "content": response})
+                self.speech(response, gpt_voice=True)
+
+    def paste_func(self):
+        no_paste = False
+        paste_content = ''
+        try:
+            paste_content = pyperclip.paste()
+        except:
+            no_paste = True
+        if no_paste or not paste_content:
+            self.speech('剪切板无内容')
+        else:
+            left = self.text[0:self.cursor]
+            right = self.text[self.cursor:]
+            self.cursor += len(paste_content)
+            self.text = left + paste_content + right
+            self.speech("已黏贴")
+
+    def copy_func(self):
+        copy_content = ""
+        if ('全文' in self.result_text) or ('所有' in self.result_text) or ('全' in self.result_text):
+            copy_content = self.selector('全文')
+        elif ('上一句' in self.result_text) or ('上句' in self.result_text) or ('前一句' in self.result_text) or (
+                '前句' in self.result_text):
+            copy_content = self.selector('上一句')
+        elif ('下一句' in self.result_text) or ('下句' in self.result_text) or ('后一句' in self.result_text) or (
+                '后句' in self.result_text):
+            copy_content = self.selector('下一句')
+        elif ('上一段' in self.result_text) or ('上段' in self.result_text) or ('前一段' in self.result_text) or (
+                '前段' in self.result_text):
+            copy_content = self.selector('上一段')
+        elif ('下一段' in self.result_text) or ('下段' in self.result_text) or ('后一段' in self.result_text) or (
+                '后段' in self.result_text):
+            copy_content = self.selector('下一段')
+        else:
+            self.speech('无法检测内容')
+            return
+        pyperclip.copy(copy_content)
+        self.speech('已复制内容')
 
     def insert_method(self):
         if self.result_text == "退出":
@@ -910,7 +1000,7 @@ class ChunJi:
             wf.writeframes(b"".join(frames))
             wf.close()
 
-    def speech(self, text, block=False, filename=False, read_punc=False, go_smart_record=True):
+    def speech(self, text, block=False, filename=False, read_punc=False, go_smart_record=True, gpt_voice=False):
         if text == '':
             text = '无内容'
         if filename:
@@ -922,9 +1012,13 @@ class ChunJi:
             text = text.replace(' ', ' 空格 ')
             for i in PUNC.keys():
                 text = text.replace(i, ' ' + PUNC[i] + ' ')
+        if gpt_voice:
+            speaker = 'chinese_huaxiaohan_common'
+        else:
+            speaker = 'chinese_xiaoyu_common'
 
-        print("---"+text)
-        tts(text, speed=self.speed)
+        print("---" + text)
+        tts(text, speed=self.speed, speaker=speaker)
         if self.listen_mode == 1:
             self.play_audio(TTS_PATH, block=block)
         elif self.listen_mode == 2:
