@@ -12,7 +12,6 @@ import numpy as np
 import pyaudio
 import pyperclip
 
-
 from gpt import send_message
 
 from sasr import sasr
@@ -280,10 +279,16 @@ class ChunJi:
             self.ai_method()
             self.log.append((self.text, self.cursor))
             self.text = self.message_log[-1]["content"]
-        elif ("剪切板" in self.result_text or "剪贴板" in self.result_text or "剪切版" in self.result_text) and self.prevent_loop == False:
+        elif (
+                "剪切板" in self.result_text or "剪贴板" in self.result_text or "剪切版" in self.result_text) and self.prevent_loop == False:
             self.prevent_loop = True
             self.result_text = pyperclip.paste() + "请你描述这个内容"
             self.ai_method()
+        elif ("复制" in self.result_text or "拷贝" in self.result_text) and (
+                "内容" in self.result_text or "回答" in self.result_text or "文章" in self.result_text) and self.prevent_loop == False:
+            pyperclip.copy(self.message_log[-1]["content"])
+            self.speech('已复制', gpt_voice=True)
+
         else:
             self.prevent_loop = False
             if self.first_gpt:
@@ -315,6 +320,7 @@ class ChunJi:
         if '一' in self.result_text:
             self.result_text = "请帮我修改这篇文章，并直接回答修改后的文章：" + self.text
             self.speech('好的，我帮你修改文章', gpt_voice=True)
+            self.prevent_loop = True
             self.ai_method()
             self.log.append((self.text, self.cursor))
             self.text = self.message_log[-1]["content"]
@@ -326,6 +332,7 @@ class ChunJi:
         elif "三" in self.result_text:
 
             self.result_text = pyperclip.paste() + "请你描述这个内容"
+            self.prevent_loop = True
             self.ai_method()
 
         self.pending = ""
