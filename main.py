@@ -181,6 +181,7 @@ class ChunJi:
                 self.speech("当前模式：输入")
         elif '输入' in self.result_text:
             self.result_text = self.result_text.replace('输入', '', 1)
+            self.result_text_with_punc = self.result_text_with_punc.replace('输入', '', 1)
             self.insert_method()
         #
         # elif self.result_text in ['朗读上一句', '读上一句']:
