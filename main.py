@@ -283,7 +283,7 @@ class ChunJi:
         elif (
                 "剪切板" in self.result_text or "剪贴板" in self.result_text or "剪切版" in self.result_text) and self.prevent_loop == False:
             self.prevent_loop = True
-            self.result_text = pyperclip.paste() + "请你描述这个内容"
+            self.result_text = pyperclip.paste() + "请单纯描绘图像的内容"
             self.ai_method()
         elif ("复制" in self.result_text or "拷贝" in self.result_text) and (
                 "内容" in self.result_text or "回答" in self.result_text or "文章" in self.result_text) and self.prevent_loop == False:
