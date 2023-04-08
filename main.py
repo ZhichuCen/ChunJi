@@ -273,6 +273,13 @@ class ChunJi:
             self.message_log = []
             self.first_gpt = True
             self.mode = "Command"
+        elif "错别字" in self.result_text and "文章" in self.result_text and self.prevent_loop == False:
+            self.prevent_loop = True
+            self.result_text = "修改文章中的错别字，不改动其他内容，直接回答修改后的文章，不加其他提示词：" + self.text
+            self.speech('好的，我帮你修改文章', gpt_voice=True)
+            self.ai_method()
+            self.log.append((self.text, self.cursor))
+            self.text = self.message_log[-1]["content"]
         elif "修改" in self.result_text and "文章" in self.result_text and self.prevent_loop == False:
             self.prevent_loop = True
             self.result_text = "请帮我修改这篇文章，直接回答修改后的文章：" + self.text
